@@ -19,6 +19,7 @@
 **/eggs/
 **/.eggs/
 **/lib/
+!**/landing-page/lib/
 **/lib64/
 **/parts/
 **/sdist/
