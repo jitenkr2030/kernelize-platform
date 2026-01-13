@@ -50,7 +50,7 @@ export default function CTA() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="http://localhost:3000/signup">
+              <Link href="/signup">
                 <Button size="lg" className="group w-full sm:w-auto">
                   Start Free Trial
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

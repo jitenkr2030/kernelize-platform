@@ -99,7 +99,7 @@ export default function Testimonials() {
             Ready to join these industry leaders?
           </p>
           <a
-            href="http://localhost:3000/signup"
+            href="/signup"
             className="text-primary hover:text-primary-hover font-medium transition-colors"
           >
             Start your free trial today →

@@ -119,7 +119,7 @@ export default function Pricing() {
                 </ul>
 
                 {/* CTA Button */}
-                <Link href={plan.price !== null ? "http://localhost:3000/signup" : "#contact"}>
+                <Link href={plan.price !== null ? "/signup" : "#contact"}>
                   <Button
                     variant={plan.popular ? 'primary' : 'secondary'}
                     className="w-full"

@@ -71,12 +71,12 @@ export default function Navbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="http://localhost:3000/login">
+            <Link href="/login">
               <Button variant="ghost" size="sm">
                 Log In
               </Button>
             </Link>
-            <Link href="http://localhost:3000/signup">
+            <Link href="/signup">
               <Button size="sm">
                 Sign Up
               </Button>
@@ -113,12 +113,12 @@ export default function Navbar() {
                   </Link>
                 ))}
                 <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-700">
-                  <Link href="http://localhost:3000/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="secondary" className="w-full">
                       Log In
                     </Button>
                   </Link>
-                  <Link href="http://localhost:3000/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button className="w-full">
                       Sign Up
                     </Button>
