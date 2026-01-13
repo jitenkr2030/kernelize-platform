@@ -125,7 +125,7 @@ export const STATS = [
 export const PRICING_PLANS = [
   {
     name: 'Starter',
-    price: 29,
+    price: 299,
     description: 'Perfect for small projects and individual developers',
     features: [
       'Up to 100GB bandwidth',
@@ -140,7 +140,7 @@ export const PRICING_PLANS = [
   },
   {
     name: 'Professional',
-    price: 99,
+    price: 499,
     description: 'Ideal for growing teams and production applications',
     features: [
       'Up to 1TB bandwidth',
@@ -156,7 +156,7 @@ export const PRICING_PLANS = [
   },
   {
     name: 'Enterprise',
-    price: 499,
+    price: 999999,
     description: 'For large organizations with advanced requirements',
     features: [
       'Unlimited bandwidth',
