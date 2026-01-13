@@ -92,7 +92,7 @@ export default function Pricing() {
 
                 {/* Price */}
                 <div className="mb-6">
-                  {plan.price !== null ? (
+                  {plan.price !== null && plan.price < 999999 ? (
                     <div className="flex items-baseline">
                       <span className="text-4xl font-bold text-text-primary">
                         ${plan.price}
@@ -119,7 +119,7 @@ export default function Pricing() {
                 </ul>
 
                 {/* CTA Button */}
-                <Link href={plan.price !== null ? "/signup" : "#contact"}>
+                <Link href={plan.price !== null && plan.price < 999999 ? "/signup" : "#contact"}>
                   <Button
                     variant={plan.popular ? 'primary' : 'secondary'}
                     className="w-full"
