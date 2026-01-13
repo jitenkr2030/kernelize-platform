@@ -1,0 +1,305 @@
+# KERNELIZE Platform - Prometheus Alerting Rules
+groups:
+- name: kernelize-api-alerts
+  rules:
+  # API Availability Alerts
+  - alert: KernelizeAPIDown
+    expr: up{job="kernelize-api"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-api
+    annotations:
+      summary: "KERNELIZE API is down"
+      description: "KERNELIZE API has been down for more than 1 minute"
+      runbook_url: "https://docs.kernelize.platform/runbooks/api-down"
+
+  - alert: KernelizeAPIHighErrorRate
+    expr: rate(kernelize_api_requests_total{status=~"5.."}[5m]) > 0.1
+    for: 5m
+    labels:
+      severity: warning
+      service: kernelize-api
+    annotations:
+      summary: "KERNELIZE API high error rate"
+      description: "API error rate is {{ $value }} errors per second"
+      runbook_url: "https://docs.kernelize.platform/runbooks/high-error-rate"
+
+  - alert: KernelizeAPIHighLatency
+    expr: histogram_quantile(0.95, rate(kernelize_api_request_duration_seconds_bucket[5m])) > 2
+    for: 5m
+    labels:
+      severity: warning
+      service: kernelize-api
+    annotations:
+      summary: "KERNELIZE API high latency"
+      description: "95th percentile latency is {{ $value }}s"
+
+  # Resource Usage Alerts
+  - alert: KernelizeAPIHighMemoryUsage
+    expr: (kernelize_api_memory_usage_bytes / kernelize_api_memory_limit_bytes) > 0.8
+    for: 5m
+    labels:
+      severity: warning
+      service: kernelize-api
+    annotations:
+      summary: "KERNELIZE API high memory usage"
+      description: "Memory usage is above 80% ({{ $value | humanizePercentage }})"
+
+  - alert: KernelizeAPIHighCPUUsage
+    expr: rate(kernelize_api_cpu_usage_seconds_total[5m]) > 0.8
+    for: 5m
+    labels:
+      severity: warning
+      service: kernelize-api
+    annotations:
+      summary: "KERNELIZE API high CPU usage"
+      description: "CPU usage is above 80%"
+
+  # Authentication & Security Alerts
+  - alert: KernelizeAPIHighFailedLogins
+    expr: rate(kernelize_api_failed_login_attempts_total[5m]) > 10
+    for: 2m
+    labels:
+      severity: warning
+      service: kernelize-api
+      category: security
+    annotations:
+      summary: "High number of failed login attempts"
+      description: "Failed login rate is {{ $value }} attempts per second"
+      runbook_url: "https://docs.kernelize.platform/runbooks/security-incident"
+
+  - alert: KernelizeAPIAuthenticationBypass
+    expr: rate(kernelize_api_auth_bypass_attempts_total[5m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-api
+      category: security
+    annotations:
+      summary: "Potential authentication bypass attempts detected"
+      description: "Authentication bypass attempts detected at {{ $value }} per second"
+      runbook_url: "https://docs.kernelize.platform/runbooks/auth-bypass"
+
+- name: kernelize-analytics-alerts
+  rules:
+  # Analytics Service Alerts
+  - alert: KernelizeAnalyticsDown
+    expr: up{job="kernelize-analytics"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-analytics
+    annotations:
+      summary: "KERNELIZE Analytics service is down"
+      description: "Analytics service has been down for more than 1 minute"
+      runbook_url: "https://docs.kernelize.platform/runbooks/analytics-down"
+
+  - alert: KernelizeAnalyticsProcessingLag
+    expr: kernelize_analytics_processing_lag_seconds > 300
+    for: 5m
+    labels:
+      severity: warning
+      service: kernelize-analytics
+    annotations:
+      summary: "Analytics processing lag detected"
+      description: "Analytics processing is lagging by {{ $value }} seconds"
+
+  - alert: KernelizeAnalyticsModelAccuracyLow
+    expr: kernelize_analytics_model_accuracy < 0.85
+    for: 10m
+    labels:
+      severity: warning
+      service: kernelize-analytics
+    annotations:
+      summary: "Analytics model accuracy below threshold"
+      description: "Model accuracy is {{ $value | humanizePercentage }}"
+
+- name: kernelize-data-alerts
+  rules:
+  # Data Management Alerts
+  - alert: KernelizeDataDown
+    expr: up{job="kernelize-data"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-data
+    annotations:
+      summary: "KERNELIZE Data service is down"
+      description: "Data service has been down for more than 1 minute"
+      runbook_url: "https://docs.kernelize.platform/runbooks/data-down"
+
+  - alert: KernelizeDataHighDiskUsage
+    expr: (kernelize_data_disk_usage_bytes / kernelize_data_disk_total_bytes) > 0.85
+    for: 5m
+    labels:
+      severity: warning
+      service: kernelize-data
+    annotations:
+      summary: "Data service disk usage high"
+      description: "Disk usage is above 85% ({{ $value | humanizePercentage }})"
+
+  - alert: KernelizeDataBackupFailed
+    expr: increase(kernelize_data_backup_failures_total[1h]) > 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-data
+    annotations:
+      summary: "Data backup failed"
+      description: "Data backup has failed in the last hour"
+      runbook_url: "https://docs.kernelize.platform/runbooks/backup-failure"
+
+  - alert: KernelizeDataReplicationLag
+    expr: kernelize_data_replication_lag_seconds > 60
+    for: 3m
+    labels:
+      severity: warning
+      service: kernelize-data
+    annotations:
+      summary: "Data replication lag detected"
+      description: "Replication lag is {{ $value }} seconds"
+
+- name: kernelize-security-alerts
+  rules:
+  # Security Service Alerts
+  - alert: KernelizeSecurityDown
+    expr: up{job="kernelize-security"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-security
+    annotations:
+      summary: "KERNELIZE Security service is down"
+      description: "Security service has been down for more than 1 minute"
+      runbook_url: "https://docs.kernelize.platform/runbooks/security-down"
+
+  - alert: KernelizeSecurityCertificateExpiring
+    expr: kernelize_security_certificate_expiry_days < 30
+    for: 1h
+    labels:
+      severity: warning
+      service: kernelize-security
+      category: security
+    annotations:
+      summary: "SSL certificate expiring soon"
+      description: "SSL certificate expires in {{ $value }} days"
+      runbook_url: "https://docs.kernelize.platform/runbooks/certificate-renewal"
+
+  - alert: KernelizeSecurityAuditLogFull
+    expr: kernelize_security_audit_log_usage_percent > 90
+    for: 5m
+    labels:
+      severity: critical
+      service: kernelize-security
+      category: security
+    annotations:
+      summary: "Security audit log usage critical"
+      description: "Audit log usage is {{ $value | humanizePercentage }}"
+      runbook_url: "https://docs.kernelize.platform/runbooks/audit-log"
+
+- name: kernelize-ha-alerts
+  rules:
+  # High Availability Alerts
+  - alert: KernelizeHADown
+    expr: up{job="kernelize-ha"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-ha
+    annotations:
+      summary: "KERNELIZE High Availability service is down"
+      description: "HA service has been down for more than 1 minute"
+      runbook_url: "https://docs.kernelize.platform/runbooks/ha-down"
+
+  - alert: KernelizeHAFailoverTriggered
+    expr: increase(kernelize_ha_failover_events_total[5m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+      service: kernelize-ha
+    annotations:
+      summary: "Failover event triggered"
+      description: "Failover has been triggered in the last 5 minutes"
+      runbook_url: "https://docs.kernelize.platform/runbooks/failover-event"
+
+  - alert: KernelizeHAHealthCheckFailed
+    expr: rate(kernelize_ha_health_check_failures_total[5m]) > 0.2
+    for: 3m
+    labels:
+      severity: warning
+      service: kernelize-ha
+    annotations:
+      summary: "High availability health checks failing"
+      description: "Health check failure rate is {{ $value | humanizePercentage }}"
+
+- name: kernelize-infrastructure-alerts
+  rules:
+  # Infrastructure Alerts
+  - alert: KernelizeClusterNodesDown
+    expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+    for: 2m
+    labels:
+      severity: critical
+      service: kubernetes
+    annotations:
+      summary: "Kubernetes cluster node down"
+      description: "Node {{ $labels.node }} is not ready"
+      runbook_url: "https://docs.kernelize.platform/runbooks/node-down"
+
+  - alert: KernelizePodCrashLooping
+    expr: rate(kube_pod_container_status_restarts_total[10m]) > 0
+    for: 5m
+    labels:
+      severity: warning
+      service: kubernetes
+    annotations:
+      summary: "Pod crash looping detected"
+      description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping"
+
+  - alert: KernelizePersistentVolumeUsageHigh
+    expr: (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.85
+    for: 5m
+    labels:
+      severity: warning
+      service: kubernetes
+    annotations:
+      summary: "Persistent volume usage high"
+      description: "PV {{ $labels.persistentvolume }} usage is {{ $value | humanizePercentage }}"
+
+- name: kernelize-business-alerts
+  rules:
+  # Business Logic Alerts
+  - alert: KernelizeAPIRequestRateAnomaly
+    expr: rate(kernelize_api_requests_total[5m]) < 10
+    for: 10m
+    labels:
+      severity: warning
+      service: kernelize-api
+      category: business
+    annotations:
+      summary: "API request rate anomaly detected"
+      description: "Request rate is significantly lower than expected"
+      runbook_url: "https://docs.kernelize.platform/runbooks/request-anomaly"
+
+  - alert: KernelizeUserRegistrationDrop
+    expr: rate(kernelize_user_registrations_total[5m]) < 1
+    for: 15m
+    labels:
+      severity: warning
+      service: kernelize-api
+      category: business
+    annotations:
+      summary: "User registration rate dropped"
+      description: "New user registrations are below normal rate"
+
+  - alert: KernelizeRevenueAnomaly
+    expr: rate(kernelize_revenue_total[1h]) < 100
+    for: 30m
+    labels:
+      severity: critical
+      service: kernelize-api
+      category: business
+    annotations:
+      summary: "Revenue anomaly detected"
+      description: "Revenue generation is below expected threshold"

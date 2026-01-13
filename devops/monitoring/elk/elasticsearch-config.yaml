@@ -1,0 +1,340 @@
+# KERNELIZE Platform - Elasticsearch Configuration
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: kernelize-logging
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+        ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        - containerPort: 9300
+          name: inter-node
+          protocol: TCP
+        env:
+        - name: cluster.name
+          value: "kernelize-logging"
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+        - name: cluster.initial_master_nodes
+          value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+        - name: ES_JAVA_OPTS
+          value: "-Xms2g -Xmx2g"
+        - name: xpack.security.enabled
+          value: "true"
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 90
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 60
+          periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
+      storageClassName: gp3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: kernelize-logging
+  labels:
+    app: elasticsearch
+spec:
+  clusterIP: None
+  ports:
+  - port: 9200
+    name: rest
+  - port: 9300
+    name: inter-node
+  selector:
+    app: elasticsearch
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-client
+  namespace: kernelize-logging
+  labels:
+    app: elasticsearch
+spec:
+  ports:
+  - port: 9200
+    targetPort: 9200
+    name: rest
+  selector:
+    app: elasticsearch
+---
+# Elasticsearch Index Templates
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-templates
+  namespace: kernelize-logging
+data:
+  kernelize-api-template.json: |
+    {
+      "index_patterns": ["kernelize-api-*"],
+      "template": {
+        "settings": {
+          "number_of_shards": 1,
+          "number_of_replicas": 1,
+          "index.refresh_interval": "5s",
+          "index.codec": "best_compression"
+        },
+        "mappings": {
+          "properties": {
+            "@timestamp": {
+              "type": "date"
+            },
+            "level": {
+              "type": "keyword"
+            },
+            "message": {
+              "type": "text"
+            },
+            "service": {
+              "type": "keyword"
+            },
+            "method": {
+              "type": "keyword"
+            },
+            "endpoint": {
+              "type": "keyword"
+            },
+            "status_code": {
+              "type": "integer"
+            },
+            "response_time": {
+              "type": "float"
+            },
+            "user_id": {
+              "type": "keyword"
+            },
+            "session_id": {
+              "type": "keyword"
+            },
+            "ip_address": {
+              "type": "ip"
+            },
+            "user_agent": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      },
+      "priority": 100,
+      "version": 1,
+      "_meta": {
+        "description": "KERNELIZE API log template"
+      }
+    }
+  kernelize-analytics-template.json: |
+    {
+      "index_patterns": ["kernelize-analytics-*"],
+      "template": {
+        "settings": {
+          "number_of_shards": 1,
+          "number_of_replicas": 1,
+          "index.refresh_interval": "10s"
+        },
+        "mappings": {
+          "properties": {
+            "@timestamp": {
+              "type": "date"
+            },
+            "level": {
+              "type": "keyword"
+            },
+            "message": {
+              "type": "text"
+            },
+            "service": {
+              "type": "keyword"
+            },
+            "model_name": {
+              "type": "keyword"
+            },
+            "prediction_value": {
+              "type": "float"
+            },
+            "confidence_score": {
+              "type": "float"
+            },
+            "processing_time": {
+              "type": "float"
+            },
+            "input_size": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "priority": 100,
+      "version": 1
+    }
+  kernelize-security-template.json: |
+    {
+      "index_patterns": ["kernelize-security-*"],
+      "template": {
+        "settings": {
+          "number_of_shards": 1,
+          "number_of_replicas": 2,
+          "index.refresh_interval": "1s"
+        },
+        "mappings": {
+          "properties": {
+            "@timestamp": {
+              "type": "date"
+            },
+            "level": {
+              "type": "keyword"
+            },
+            "message": {
+              "type": "text"
+            },
+            "service": {
+              "type": "keyword"
+            },
+            "event_type": {
+              "type": "keyword"
+            },
+            "user_id": {
+              "type": "keyword"
+            },
+            "ip_address": {
+              "type": "ip"
+            },
+            "user_agent": {
+              "type": "text"
+            },
+            "success": {
+              "type": "boolean"
+            },
+            "risk_score": {
+              "type": "float"
+            },
+            "compliance_violation": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "priority": 100,
+      "version": 1
+    }
+---
+# Elasticsearch Curator for Index Management
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: elasticsearch-curator
+  namespace: kernelize-logging
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: curator
+            image: elastic/curator:8.0
+            args:
+            - --config
+            - /etc/curator/config.yml
+            - /etc/curator/action.yml
+            volumeMounts:
+            - name: curator-config
+              mountPath: /etc/curator
+          volumes:
+          - name: curator-config
+            configMap:
+              name: elasticsearch-curator-config
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-curator-config
+  namespace: kernelize-logging
+data:
+  config.yml: |
+    client:
+      hosts:
+        - elasticsearch-client.kernelize-logging.svc.cluster.local
+      port: 9200
+      use_ssl: False
+      timeout: 30
+      max_retries: 10
+      master_only: False
+    logging:
+      loglevel: INFO
+  action.yml: |
+    ---
+    actions:
+      1:
+        action: delete_indices
+        description: Delete indices older than 30 days
+        options:
+          timeout_override: 300
+          continue_if_exception: False
+          disable_action: False
+        filters:
+        - filtertype: pattern
+          kind: prefix
+          value: kernelize-
+        - filtertype: age
+          source: name
+          direction: older
+          timestring: '%Y-%m-%d'
+          unit: days
+          unit_count: 30

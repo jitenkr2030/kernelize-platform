@@ -1,0 +1,473 @@
+# KERNELIZE Platform - Kibana Configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: kernelize-logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.8.0
+        ports:
+        - containerPort: 5601
+          name: ui
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"
+        - name: SERVER_NAME
+          value: "kernelize-kibana"
+        - name: SERVER_HOST
+          value: "0.0.0.0"
+        - name: ELASTICSEARCH_USERNAME
+          value: "elastic"
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        - name: XPACK_SECURITY_ENABLED
+          value: "true"
+        - name: XPACK_MONITORING_ENABLED
+          value: "true"
+        - name: XPACK_GRAPH_ENABLED
+          value: "true"
+        - name: XPACK_WATCHER_ENABLED
+          value: "true"
+        - name: XPACK_ML_ENABLED
+          value: "true"
+        volumeMounts:
+        - name: kibana-config
+          mountPath: /usr/share/kibana/config
+        - name: kibana-data
+          mountPath: /usr/share/kibana/data
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      volumes:
+      - name: kibana-config
+        configMap:
+          name: kibana-config
+      - name: kibana-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: kernelize-logging
+  labels:
+    app: kibana
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5601
+    targetPort: 5601
+    name: ui
+  selector:
+    app: kibana
+---
+# Kibana Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-config
+  namespace: kernelize-logging
+data:
+  kibana.yml: |
+    server.name: "kernelize-kibana"
+    server.host: "0.0.0.0"
+    server.port: 5601
+    
+    elasticsearch.hosts: ["http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"]
+    
+    # Authentication
+    xpack.security.enabled: true
+    xpack.security.encryptionKey: "your-32-character-encryption-key-here"
+    
+    # Monitoring
+    xpack.monitoring.enabled: true
+    xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"]
+    
+    # Security
+    xpack.security.sessionTimeout: 3600000
+    
+    # Index Patterns
+    kibana.defaultAppId: "discover"
+    
+    # Logging
+    logging.appenders:
+      file:
+        type: file
+        fileName: /usr/share/kibana/logs/kibana.log
+        layout:
+          type: json
+    logging.root:
+      level: info
+      appenders: [default, file]
+    
+    # Maps
+    xpack.maps.enabled: true
+    
+    # Machine Learning
+    xpack.ml.enabled: true
+    
+    # Graph
+    xpack.graph.enabled: true
+    
+    # Watcher
+    xpack.watcher.enabled: true
+    
+    # Reporting
+    xpack.reporting.enabled: true
+    xpack.reporting.encryptionKey: "your-32-character-reporting-key-here"
+    
+    # Search Profiler
+    xpack.searchprofiler.enabled: true
+    
+    # Advanced Settings
+    kibana.enableExternalUrls: false
+    
+    # Data Storage
+    data.search.aggs.shardDelay.enabled: true
+---
+# Kibana Index Patterns and Dashboards
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-objects
+  namespace: kernelize-logging
+data:
+  index-patterns.json: |
+    {
+      "version": "7.8.0",
+      "objects": [
+        {
+          "_id": "kernelize-*",
+          "_type": "index-pattern",
+          "_source": {
+            "title": "kernelize-*",
+            "timeFieldName": "@timestamp",
+            "fields": [
+              {
+                "name": "@timestamp",
+                "type": "date",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "level",
+                "type": "keyword",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "message",
+                "type": "text",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": false
+              },
+              {
+                "name": "service",
+                "type": "keyword",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "service_type",
+                "type": "keyword",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "environment",
+                "type": "keyword",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "status_code",
+                "type": "number",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "response_time",
+                "type": "number",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "ip_address",
+                "type": "ip",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              },
+              {
+                "name": "geoip.location",
+                "type": "geo_point",
+                "scripted": false,
+                "searchable": true,
+                "aggregatable": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  api-dashboard.json: |
+    {
+      "version": "7.8.0",
+      "objects": [
+        {
+          "_id": "kernelize-api-dashboard",
+          "_type": "dashboard",
+          "_source": {
+            "title": "KERNELIZE API Dashboard",
+            "hits": 0,
+            "description": "Real-time monitoring of KERNELIZE API performance and logs",
+            "panelsJSON": "[]",
+            "version": 1,
+            "timeRestore": false,
+            "kibanaSavedObjectMeta": {
+              "searchSourceJSON": "{}"
+            }
+          }
+        }
+      ]
+    }
+  security-dashboard.json: |
+    {
+      "version": "7.8.0",
+      "objects": [
+        {
+          "_id": "kernelize-security-dashboard",
+          "_type": "dashboard",
+          "_source": {
+            "title": "KERNELIZE Security Dashboard",
+            "hits": 0,
+            "description": "Security monitoring and threat detection dashboard",
+            "panelsJSON": "[]",
+            "version": 1,
+            "timeRestore": false,
+            "kibanaSavedObjectMeta": {
+              "searchSourceJSON": "{}"
+            }
+          }
+        }
+      ]
+    }
+  analytics-dashboard.json: |
+    {
+      "version": "7.8.0",
+      "objects": [
+        {
+          "_id": "kernelize-analytics-dashboard",
+          "_type": "dashboard",
+          "_source": {
+            "title": "KERNELIZE Analytics Dashboard",
+            "hits": 0,
+            "description": "Analytics processing and machine learning model performance",
+            "panelsJSON": "[]",
+            "version": 1,
+            "timeRestore": false,
+            "kibanaSavedObjectMeta": {
+              "searchSourceJSON": "{}"
+            }
+          }
+        }
+      ]
+    }
+---
+# Filebeat for log collection
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  namespace: kernelize-logging
+spec:
+  selector:
+    matchLabels:
+      app: filebeat
+  template:
+    metadata:
+      labels:
+        app: filebeat
+    spec:
+      serviceAccountName: filebeat
+      terminationGracePeriodSeconds: 30
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: filebeat
+        image: docker.elastic.co/beats/filebeat:8.8.0
+        args: [
+          "-c", "/etc/filebeat.yml",
+          "-e",
+        ]
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: "elasticsearch-client.kernelize-logging.svc.cluster.local"
+        - name: ELASTICSEARCH_PORT
+          value: "9200"
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        securityContext:
+          runAsUser: 0
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/filebeat.yml
+          readOnly: true
+          subPath: filebeat.yml
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+        - name: dockersock
+          mountPath: /var/run/docker.sock
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          defaultMode: 0600
+          name: filebeat-config
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: dockersock
+        hostPath:
+          path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: kernelize-logging
+data:
+  filebeat.yml: |
+    filebeat.inputs:
+    - type: container
+      paths:
+        - /var/log/containers/*kernelize*.log
+      processors:
+      - add_kubernetes_metadata:
+          host: ${NODE_NAME}
+          matchers:
+          - logs_path:
+              logs_path: "/var/log/containers/"
+      
+      fields:
+        service: kernelize
+        environment: production
+      
+      fields_under_root: false
+      multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+      multiline.negate: true
+      multiline.match: after
+    
+    output.logstash:
+      hosts: ["logstash.kernelize-logging.svc.cluster.local:5044"]
+    
+    processors:
+    - add_cloud_metadata:
+    - add_host_metadata:
+        when.not.contains.tags: forwarded
+    
+    logging.level: info
+    logging.to_files: true
+    logging.files:
+      path: /var/log/filebeat
+      name: filebeat
+      keepfiles: 7
+      permissions: 0644
+    
+    monitoring.enabled: true
+    monitoring.elasticsearch:
+      hosts: ["elasticsearch-client.kernelize-logging.svc.cluster.local:9200"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: filebeat
+  namespace: kernelize-logging
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: filebeat
+subjects:
+- kind: ServiceAccount
+  name: filebeat
+  namespace: kernelize-logging
+roleRef:
+  kind: ClusterRole
+  name: filebeat
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: filebeat
+rules:
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - pods
+  - nodes
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups: ["apps"]
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch

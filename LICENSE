@@ -1,0 +1,66 @@
+# KERNELIZE Platform License Information
+
+## Dual Licensing Strategy
+
+The KERNELIZE Platform uses a **dual-licensing strategy** to balance commercial protection with ecosystem growth:
+
+- **Core Platform** (src/): Licensed under **Business Source License 1.1 (BSL 1.1)**
+- **SDK, CLI, Frontend, Docs, DevOps** (sdk/, cli/, frontend/, landing-page/, docs/, devops/): Licensed under **Apache License 2.0**
+
+## License Summary
+
+### Business Source License 1.1 (BSL 1.1)
+
+The core KERNELIZE Platform is licensed under BSL 1.1, which allows you to:
+- View, modify, and use the source code
+- Run the software for development, testing, and production
+- Build integrations and solutions
+
+The BSL 1.1 includes a **use clause** that prohibits:
+- Offering the software as a hosted or managed service
+- Using the software in competitive commercial products
+
+**After 4 years (January 2030), this license converts to Apache 2.0.**
+
+### Apache License 2.0
+
+The SDK, CLI tools, frontend, documentation, and DevOps templates are licensed under Apache 2.0, which allows you to:
+- Freely use, modify, and distribute the software
+- Use for commercial purposes
+- Create derivative works
+- Use privately and publicly
+
+Apache 2.0 includes an explicit **patent grant** protecting users from patent claims.
+
+## License Files
+
+| Component | Location | License |
+|-----------|----------|---------|
+| Core Platform | src/ | BSL 1.1 |
+| Python SDK | sdk/ | Apache 2.0 |
+| CLI Tools | cli/ | Apache 2.0 |
+| Frontend | frontend/ | Apache 2.0 |
+| Landing Page | landing-page/ | Apache 2.0 |
+| Documentation | docs/ | Apache 2.0 |
+| DevOps Templates | devops/ | Apache 2.0 |
+
+## Third-Party Dependencies
+
+KERNELIZE Platform incorporates various third-party open-source dependencies, each licensed under their respective terms. All dependencies are compatible with our dual-licensing strategy. See package.json files for full dependency lists.
+
+## Commercial Licensing
+
+For enterprise deployments, SaaS offerings, or custom licensing requirements, contact:
+
+- **Email**: licensing@kernelize.platform
+- **Website**: https://kernelize.platform
+
+## Copyright
+
+Copyright (c) 2026 KERNELIZE Platform. All rights reserved.
+
+---
+
+For full license terms, see:
+- [LICENSE-CORE](LICENSE-CORE) for BSL 1.1 terms
+- [LICENSE-SDK](LICENSE-SDK) for Apache 2.0 terms

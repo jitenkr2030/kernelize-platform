@@ -1,0 +1,36 @@
+# KERNELIZE Platform - Kubernetes Namespaces
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kernelize-production
+  labels:
+    name: kernelize-production
+    environment: production
+    project: kernelize
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kernelize-staging
+  labels:
+    name: kernelize-staging
+    environment: staging
+    project: kernelize
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kernelize-monitoring
+  labels:
+    name: kernelize-monitoring
+    environment: production
+    project: kernelize
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kernelize-logging
+  labels:
+    name: kernelize-logging
+    environment: production
+    project: kernelize

@@ -1,0 +1,404 @@
+# KERNELIZE Platform - Logstash Configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: kernelize-logging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: docker.elastic.co/logstash/logstash:8.8.0
+        ports:
+        - containerPort: 5044
+          name: beats
+        - containerPort: 9600
+          name: monitoring
+        env:
+        - name: LS_JAVA_OPTS
+          value: "-Xms1g -Xmx1g"
+        - name: PIPELINE_WORKERS
+          value: "2"
+        - name: PIPELINE_BATCH_SIZE
+          value: "1000"
+        - name: PIPELINE_BATCH_DELAY
+          value: "50"
+        volumeMounts:
+        - name: logstash-config
+          mountPath: /usr/share/logstash/config
+        - name: logstash-pipeline
+          mountPath: /usr/share/logstash/pipeline
+        - name: logstash-data
+          mountPath: /usr/share/logstash/data
+        resources:
+          requests:
+            memory: "1.5Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: logstash-config
+        configMap:
+          name: logstash-config
+      - name: logstash-pipeline
+        configMap:
+          name: logstash-pipeline
+      - name: logstash-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: kernelize-logging
+  labels:
+    app: logstash
+spec:
+  ports:
+  - port: 5044
+    targetPort: 5044
+    name: beats
+  - port: 9600
+    targetPort: 9600
+    name: monitoring
+  selector:
+    app: logstash
+---
+# Logstash Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: kernelize-logging
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"]
+    path.config: /usr/share/logstash/pipeline
+    pipeline.workers: 2
+    pipeline.batch.size: 1000
+    pipeline.batch.delay: 50
+    queue.type: memory
+    queue.page_capacity: 64mb
+    queue.max_events: 0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+  namespace: kernelize-logging
+data:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+      
+      http {
+        port => 8080
+        codec => json
+      }
+      
+      tcp {
+        port => 5000
+        codec => json
+      }
+      
+      udp {
+        port => 5000
+        codec => json
+      }
+    }
+    
+    filter {
+      # Parse KERNELIZE API logs
+      if [fields][service] == "kernelize-api" {
+        json {
+          source => "message"
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+        }
+        
+        mutate {
+          add_field => { "service_type" => "api" }
+        }
+        
+        # Extract response time
+        if [response_time] {
+          mutate {
+            convert => { "response_time" => "float" }
+          }
+        }
+        
+        # Parse status codes
+        if [status_code] {
+          mutate {
+            convert => { "status_code" => "integer" }
+          }
+        }
+      }
+      
+      # Parse KERNELIZE Analytics logs
+      if [fields][service] == "kernelize-analytics" {
+        json {
+          source => "message"
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+        }
+        
+        mutate {
+          add_field => { "service_type" => "analytics" }
+        }
+        
+        if [prediction_value] {
+          mutate {
+            convert => { "prediction_value" => "float" }
+          }
+        }
+        
+        if [confidence_score] {
+          mutate {
+            convert => { "confidence_score" => "float" }
+          }
+        }
+      }
+      
+      # Parse KERNELIZE Data logs
+      if [fields][service] == "kernelize-data" {
+        json {
+          source => "message"
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+        }
+        
+        mutate {
+          add_field => { "service_type" => "data" }
+        }
+      }
+      
+      # Parse KERNELIZE Security logs
+      if [fields][service] == "kernelize-security" {
+        json {
+          source => "message"
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+        }
+        
+        mutate {
+          add_field => { "service_type" => "security" }
+        }
+        
+        # Security event classification
+        if [event_type] == "authentication" {
+          if [success] == false {
+            mutate {
+              add_tag => [ "security", "failed_auth" ]
+            }
+          } else {
+            mutate {
+              add_tag => [ "security", "successful_auth" ]
+            }
+          }
+        }
+        
+        if [event_type] == "authorization" {
+          if [success] == false {
+            mutate {
+              add_tag => [ "security", "failed_authz" ]
+            }
+          }
+        }
+        
+        # Risk scoring
+        if [risk_score] {
+          if [risk_score] > 0.8 {
+            mutate {
+              add_tag => [ "high_risk" ]
+            }
+          } else if [risk_score] > 0.5 {
+            mutate {
+              add_tag => [ "medium_risk" ]
+            }
+          } else {
+            mutate {
+              add_tag => [ "low_risk" ]
+            }
+          }
+        }
+      }
+      
+      # Parse KERNELIZE HA logs
+      if [fields][service] == "kernelize-ha" {
+        json {
+          source => "message"
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+        }
+        
+        mutate {
+          add_field => { "service_type" => "ha" }
+        }
+      }
+      
+      # Add environment information
+      if ![environment] {
+        if [kubernetes] {
+          mutate {
+            add_field => { "environment" => "kubernetes" }
+          }
+        } else {
+          mutate {
+            add_field => { "environment" => "standalone" }
+          }
+        }
+      }
+      
+      # Add hostname
+      if ![host] {
+        mutate {
+          add_field => { "host" => "%{[host][name]}" }
+        }
+      }
+      
+      # Remove unnecessary fields
+      mutate {
+        remove_field => [ "host", "agent", "ecs", "input", "log" ]
+      }
+      
+      # Add geolocation for IP addresses
+      if [ip_address] and [ip_address] != "127.0.0.1" {
+        geoip {
+          source => "ip_address"
+          target => "geoip"
+        }
+      }
+      
+      # Performance metrics
+      if [processing_time] {
+        mutate {
+          convert => { "processing_time" => "float" }
+        }
+        
+        if [processing_time] > 5.0 {
+          mutate {
+            add_tag => [ "slow_processing" ]
+          }
+        }
+      }
+    }
+    
+    output {
+      elasticsearch {
+        hosts => ["elasticsearch-client.kernelize-logging.svc.cluster.local:9200"]
+        index => "kernelize-%{+YYYY.MM.dd}"
+        template_name => "kernelize"
+        template_pattern => "kernelize-*"
+        template => "/usr/share/logstash/templates/kernelize-template.json"
+        template_overwrite => true
+      }
+      
+      # Debug output (remove in production)
+      # stdout { codec => rubydebug }
+    }
+---
+# Logstash Template
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-templates
+  namespace: kernelize-logging
+data:
+  kernelize-template.json: |
+    {
+      "template": "kernelize-*",
+      "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1,
+        "index.refresh_interval": "5s",
+        "index.codec": "best_compression",
+        "analysis": {
+          "analyzer": {
+            "kernelize_analyzer": {
+              "tokenizer": "standard",
+              "filter": ["lowercase", "stop"]
+            }
+          }
+        }
+      },
+      "mappings": {
+        "properties": {
+          "@timestamp": {
+            "type": "date",
+            "format": "strict_date_optional_time||epoch_millis"
+          },
+          "level": {
+            "type": "keyword"
+          },
+          "message": {
+            "type": "text",
+            "analyzer": "kernelize_analyzer",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "service": {
+            "type": "keyword"
+          },
+          "service_type": {
+            "type": "keyword"
+          },
+          "environment": {
+            "type": "keyword"
+          },
+          "geoip": {
+            "properties": {
+              "location": {
+                "type": "geo_point"
+              },
+              "country_name": {
+                "type": "keyword"
+              },
+              "city_name": {
+                "type": "keyword"
+              }
+            }
+          },
+          "tags": {
+            "type": "keyword"
+          }
+        }
+      }
+    }

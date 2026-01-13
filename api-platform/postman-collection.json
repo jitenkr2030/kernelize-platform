@@ -1,0 +1,468 @@
+{
+  "info": {
+    "name": "KERNELIZE API Collection",
+    "description": "Knowledge Compression Infrastructure API - Compress the world's knowledge into ultra-dense intelligence kernels",
+    "version": "2.1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.kernelize.com/v2",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "sk-ker_xxxxxxxxxxxxxxxxxxxx",
+      "type": "string"
+    },
+    {
+      "key": "kernel_id",
+      "value": "ker_4a7b2c8d9e1f3g6h",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generate unique request ID",
+          if (!pm.request.headers.get('X-Request-ID')) {",
+          "    pm.request.headers.add({",
+          "        key: 'X-Request-ID',",
+          "        value: 'req_' + Math.random().toString(36).substr(2, 16)",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Compression API",
+      "item": [
+        {
+          "name": "Compress Knowledge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input\": \"Climate change is primarily caused by greenhouse gas emissions from human activities such as burning fossil fuels, deforestation, and industrial processes. These activities release carbon dioxide, methane, and other greenhouse gases into the atmosphere, which trap heat and cause global temperatures to rise.\",\n  \"input_type\": \"text\",\n  \"compression_level\": \"ultra\",\n  \"preserve_context\": true,\n  \"domain\": \"environmental_science\",\n  \"options\": {\n    \"maintain_causality\": true,\n    \"preserve_relationships\": true,\n    \"extract_patterns\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/compress",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "compress"
+              ]
+            },
+            "description": "Compress raw knowledge into semantic intelligence kernels with 100×-10,000× compression ratios"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"input\": \"Climate change is primarily caused by greenhouse gas emissions from human activities such as burning fossil fuels, deforestation, and industrial processes. These activities release carbon dioxide, methane, and other greenhouse gases into the atmosphere, which trap heat and cause global temperatures to rise.\",\n  \"input_type\": \"text\",\n  \"compression_level\": \"ultra\",\n  \"preserve_context\": true,\n  \"domain\": \"environmental_science\",\n  \"options\": {\n    \"maintain_causality\": true,\n    \"preserve_relationships\": true,\n    \"extract_patterns\": true\n  }\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "X-Request-ID",
+                  "value": "req_4a7b2c8d9e1f3g6h",
+                  "description": "Unique request identifier"
+                },
+                {
+                  "key": "X-RateLimit-Remaining",
+                  "value": "9999",
+                  "description": "Remaining requests in current window"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"kernel_id\": \"ker_4a7b2c8d9e1f3g6h\",\n  \"compression_ratio\": 1247.3,\n  \"original_size\": 47200,\n  \"compressed_size\": 37.8,\n  \"semantic_fidelity\": 99.7,\n  \"processing_time_ms\": 2.4,\n  \"kernel_data\": {\n    \"concepts\": [\n      {\n        \"id\": \"con_001\",\n        \"definition\": \"Greenhouse effect mechanism\",\n        \"weight\": 0.97,\n        \"relationships\": [\"causes_temperature_rise\", \"enhanced_by_co2\"]\n      },\n      {\n        \"id\": \"con_015\",\n        \"definition\": \"Carbon dioxide emissions\",\n        \"weight\": 0.95,\n        \"relationships\": [\"traps_heat\", \"causes_warming\"]\n      }\n    ],\n    \"causal_chains\": [\n      {\n        \"chain_id\": \"chain_fossil_to_warming\",\n        \"confidence\": 0.94,\n        \"steps\": [\"fossil_fuel_emission\", \"co2_accumulation\", \"greenhouse_effect\", \"global_warming\"]\n      }\n    ]\n  },\n  \"api_usage\": {\n    \"tokens_used\": 156,\n    \"cost_usd\": 0.00156\n  }\n}"
+            },
+            {
+              "name": "Invalid Input",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"INVALID_INPUT\",\n    \"message\": \"Input text is too short for meaningful compression\",\n    \"details\": {\n      \"minimum_length\": 100,\n      \"provided_length\": 23\n    },\n    \"request_id\": \"req_4a7b2c8d9e1f3g6h\",\n    \"timestamp\": \"2025-12-10T14:01:49Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Query API",
+      "item": [
+        {
+          "name": "Query Kernel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/kernels/{{kernel_id}}/query?query=What%20are%20the%20main%20causes%20of%20global%20warming?&query_type=semantic&max_results=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kernels",
+                "{{kernel_id}}",
+                "query"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "What are the main causes of global warming?",
+                  "description": "Search query"
+                },
+                {
+                  "key": "query_type",
+                  "value": "semantic",
+                  "description": "Type of query"
+                },
+                {
+                  "key": "max_results",
+                  "value": "5",
+                  "description": "Maximum number of results"
+                },
+                {
+                  "key": "confidence_threshold",
+                  "value": "0.8",
+                  "description": "Minimum confidence threshold"
+                },
+                {
+                  "key": "include_explanations",
+                  "value": "true",
+                  "description": "Include reasoning explanations"
+                }
+              ]
+            },
+            "description": "Query compressed knowledge without decompression"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": []
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "X-Request-ID",
+                  "value": "req_8b3c2d1e9f5g7h2a",
+                  "description": "Unique request identifier"
+                }
+              ],
+              "body": "{\n  \"query_id\": \"qry_8b3c2d1e9f5g7h2a\",\n  \"execution_time_ms\": 0.07,\n  \"results\": [\n    {\n      \"answer\": \"Fossil fuel combustion (74% of emissions), deforestation (11%), industrial processes (10%), agriculture (5%)\",\n      \"confidence\": 0.94,\n      \"supporting_evidence\": 2847,\n      \"concept_matches\": [\"con_015\", \"con_001\", \"con_002\"],\n      \"explanation\": \"Based on causal chain analysis and peer-reviewed sources\"\n    }\n  ],\n  \"metadata\": {\n    \"kernel_version\": \"v2.1\",\n    \"sources_checked\": 2847,\n    \"semantic_coverage\": 97.3\n  }\n}"
+            },
+            {
+              "name": "Kernel Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"KERNEL_NOT_FOUND\",\n    \"message\": \"The specified kernel does not exist or has been deleted\",\n    \"details\": {\n      \"kernel_id\": \"ker_invalid_id\"\n    },\n    \"request_id\": \"req_8b3c2d1e9f5g7h2a\",\n    \"timestamp\": \"2025-12-10T14:01:49Z\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Merge API",
+      "item": [
+        {
+          "name": "Merge Knowledge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_knowledge\": \"Recent studies show renewable energy adoption reducing emissions by 15% annually in developed nations\",\n  \"merge_strategy\": \"incremental\",\n  \"conflict_resolution\": \"latest_source_priority\",\n  \"preserve_history\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/kernels/{{kernel_id}}/merge",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kernels",
+                "{{kernel_id}}",
+                "merge"
+              ]
+            },
+            "description": "Incrementally update existing kernels without recompression"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"new_knowledge\": \"Recent studies show renewable energy adoption reducing emissions by 15% annually in developed nations\",\n  \"merge_strategy\": \"incremental\",\n  \"conflict_resolution\": \"latest_source_priority\",\n  \"preserve_history\": true\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "X-Request-ID",
+                  "value": "req_9c4d2e1f7g5h3b8c"
+                }
+              ],
+              "body": "{\n  \"merge_id\": \"mrg_9c4d2e1f7g5h3b8c\",\n  \"merge_time_ms\": 0.5,\n  \"conflicts_resolved\": 3,\n  \"new_concepts_added\": 12,\n  \"relationships_updated\": 27,\n  \"kernel_version\": \"v2.2\",\n  \"backward_compatibility\": true,\n  \"validation_results\": {\n    \"consistency_score\": 0.94,\n    \"contradictions_found\": 0,\n    \"quality_improvement\": 0.07\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Distillation API",
+      "item": [
+        {
+          "name": "Distill for LLM",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_model\": \"llama-3.1-8b\",\n  \"distillation_method\": \"knowledge_injection\",\n  \"performance_target\": \"maintain_accuracy\",\n  \"deployment_target\": \"mobile\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/kernels/{{kernel_id}}/distill",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kernels",
+                "{{kernel_id}}",
+                "distill"
+              ]
+            },
+            "description": "Inject kernels directly into LLMs for offline intelligence"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target_model\": \"llama-3.1-8b\",\n  \"distillation_method\": \"knowledge_injection\",\n  \"performance_target\": \"maintain_accuracy\",\n  \"deployment_target\": \"mobile\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"distillation_id\": \"dis_7f9g2h4j1k5l3m8n\",\n  \"distillation_time_min\": 12.4,\n  \"model_size_reduction\": 94.7,\n  \"performance_improvement\": 340.2,\n  \"distilled_model_path\": \"/models/ker_llama_8b_v2.2.gguf\",\n  \"inference_speedup\": 4.2,\n  \"accuracy_retention\": 97.8,\n  \"deployment_artifacts\": {\n    \"model_file\": \"/storage/models/ker_llama_8b_v2.2.gguf\",\n    \"config_file\": \"/storage/configs/ker_llama_8b_v2.2.json\",\n    \"performance_benchmarks\": {\n      \"inference_speed_ms\": 15.2,\n      \"memory_usage_mb\": 890,\n      \"accuracy_score\": 0.978\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Marketplace API",
+      "item": [
+        {
+          "name": "Browse Kernels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/marketplace/kernels?domain=finance&min_rating=4.5&sort=popularity",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "marketplace",
+                "kernels"
+              ],
+              "query": [
+                {
+                  "key": "domain",
+                  "value": "finance",
+                  "description": "Filter by knowledge domain"
+                },
+                {
+                  "key": "min_rating",
+                  "value": "4.5",
+                  "description": "Minimum rating filter"
+                },
+                {
+                  "key": "sort",
+                  "value": "popularity",
+                  "description": "Sort by popularity"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Results per page"
+                }
+              ]
+            },
+            "description": "Browse available pre-built domain kernels"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": []
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"kernels\": [\n    {\n      \"kernel_id\": \"ker_finance_v3.1\",\n      \"name\": \"Financial Markets Intelligence\",\n      \"domain\": \"finance\",\n      \"description\": \"Real-time market data, trading patterns, and predictive analytics\",\n      \"size_mb\": 3780,\n      \"compression_ratio\": 9876,\n      \"rating\": 4.9,\n      \"review_count\": 1247,\n      \"price_monthly_usd\": 8500,\n      \"coverage\": \"127 global markets, real-time data\",\n      \"last_updated\": \"2025-12-10T10:30:00Z\",\n      \"version\": \"v3.1\",\n      \"supported_queries\": [\"semantic\", \"temporal\", \"causal\"],\n      \"sample_queries\": [\n        \"What are the current market trends?\",\n        \"Predict stock price movements\",\n        \"Analyze correlation patterns\"\n      ]\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"total_pages\": 45,\n    \"total_kernels\": 1247,\n    \"has_next\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Purchase Kernel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscription_plan\": \"monthly\",\n  \"auto_renew\": true,\n  \"billing_email\": \"billing@company.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/marketplace/kernels/ker_finance_v3.1/purchase",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "marketplace",
+                "kernels",
+                "ker_finance_v3.1",
+                "purchase"
+              ]
+            },
+            "description": "Purchase kernel subscription"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subscription_plan\": \"monthly\",\n  \"auto_renew\": true,\n  \"billing_email\": \"billing@company.com\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"purchase_id\": \"pur_2a8b5c9d1e3f6g8h\",\n  \"kernel_id\": \"ker_finance_v3.1\",\n  \"subscription\": {\n    \"status\": \"active\",\n    \"start_date\": \"2025-12-10T14:01:49Z\",\n    \"end_date\": \"2026-01-10T14:01:49Z\",\n    \"auto_renew\": true,\n    \"monthly_cost\": 8500\n  },\n  \"access_credentials\": {\n    \"api_endpoint\": \"https://api.kernelize.com/v2/kernels/ker_finance_v3.1\",\n    \"access_token\": \"ak_2a8b5c9d1e3f6g8h\",\n    \"permissions\": [\"query\", \"merge\", \"analyze\"]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Analytics API",
+      "item": [
+        {
+          "name": "Usage Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/analytics/usage?period=30d&metrics=requests,cost,performance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "analytics",
+                "usage"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d",
+                  "description": "Reporting period"
+                },
+                {
+                  "key": "metrics",
+                  "value": "requests,cost,performance",
+                  "description": "Metrics to include"
+                },
+                {
+                  "key": "granularity",
+                  "value": "daily",
+                  "description": "Data granularity"
+                }
+              ]
+            },
+            "description": "Monitor API usage and performance metrics"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": []
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"period\": \"30d\",\n  \"generated_at\": \"2025-12-10T14:01:49Z\",\n  \"total_requests\": 2847562,\n  \"total_cost_usd\": 4237.89,\n  \"average_response_time_ms\": 0.067,\n  \"success_rate\": 99.97,\n  \"error_rate\": 0.03,\n  \"breakdown\": {\n    \"compress_requests\": 124567,\n    \"query_requests\": 2682345,\n    \"merge_requests\": 34598,\n    \"distill_requests\": 4052\n  },\n  \"cost_breakdown\": {\n    \"compression\": 1892.34,\n    \"queries\": 1845.67,\n    \"storage\": 499.88\n  },\n  \"performance_metrics\": {\n    \"p50_response_time_ms\": 0.045,\n    \"p95_response_time_ms\": 0.089,\n    \"p99_response_time_ms\": 0.156,\n    \"throughput_rps\": 12500\n  },\n  \"usage_trends\": [\n    {\n      \"timestamp\": \"2025-12-09T00:00:00Z\",\n      \"requests\": 94854,\n      \"cost\": 141.27\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

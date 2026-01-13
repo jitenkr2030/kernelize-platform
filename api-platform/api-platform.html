@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KERNELIZE API Platform - Knowledge Compression Infrastructure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00FEFC;
+            --secondary: #BE2EDD;
+            --bg-primary: #0A0A0A;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1F1F1F;
+            --text-primary: #E4E4E7;
+            --text-secondary: #A0A0A0;
+            --text-tertiary: #666666;
+            --success: #00FF85;
+            --warning: #FFD600;
+            --error: #FF3B30;
+            --border: rgba(255, 255, 255, 0.1);
+            --glow-primary: 0 0 12px rgba(0, 254, 252, 0.4), 0 0 24px rgba(0, 254, 252, 0.2);
+            --glow-secondary: 0 0 12px rgba(190, 46, 221, 0.4), 0 0 24px rgba(190, 46, 221, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .api-key-display {
+            background: var(--bg-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 64px 0;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 254, 252, 0.1) 0%, transparent 50%);
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* API Stats */
+        .api-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 48px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 32px;
+            margin: 32px 0;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .endpoint-list {
+            list-style: none;
+        }
+
+        .endpoint-item {
+            margin-bottom: 8px;
+        }
+
+        .endpoint-link {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .endpoint-link:hover, .endpoint-link.active {
+            background: var(--bg-tertiary);
+            color: var(--primary);
+        }
+
+        .method-get { color: var(--success); }
+        .method-post { color: var(--primary); }
+        .method-put { color: var(--warning); }
+        .method-delete { color: var(--error); }
+
+        /* Content Area */
+        .content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .endpoint-section {
+            display: none;
+        }
+
+        .endpoint-section.active {
+            display: block;
+        }
+
+        .endpoint-header {
+            background: var(--bg-tertiary);
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .endpoint-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .method-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-get { background: rgba(0, 255, 133, 0.2); color: var(--success); }
+        .badge-post { background: rgba(0, 254, 252, 0.2); color: var(--primary); }
+        .badge-put { background: rgba(255, 214, 0, 0.2); color: var(--warning); }
+        .badge-delete { background: rgba(255, 59, 48, 0.2); color: var(--error); }
+
+        .endpoint-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .endpoint-description {
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .endpoint-body {
+            padding: 24px;
+        }
+
+        /* Code Blocks */
+        .code-section {
+            margin-bottom: 24px;
+        }
+
+        .code-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .code-block {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .keyword { color: var(--primary); }
+        .string { color: var(--success); }
+        .number { color: var(--warning); }
+        .comment { color: var(--text-tertiary); }
+
+        /* Request/Response Demo */
+        .demo-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .demo-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .demo-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-tab.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        .demo-input {
+            width: 100%;
+            min-height: 120px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            resize: vertical;
+            margin-bottom: 16px;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--glow-primary);
+        }
+
+        .demo-button {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .demo-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .demo-response {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .response-success {
+            border-left: 4px solid var(--success);
+        }
+
+        .response-error {
+            border-left: 4px solid var(--error);
+        }
+
+        .response-pending {
+            border-left: 4px solid var(--warning);
+        }
+
+        /* Response Format */
+        .response-header {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .json-key { color: var(--primary); }
+        .json-string { color: var(--success); }
+        .json-number { color: var(--warning); }
+        .json-boolean { color: var(--secondary); }
+        .json-null { color: var(--text-tertiary); }
+
+        /* SDK Examples */
+        .sdk-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .sdk-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sdk-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--glow-primary);
+        }
+
+        .sdk-card.active {
+            border-color: var(--primary);
+            background: rgba(0, 254, 252, 0.1);
+        }
+
+        .sdk-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .sdk-install {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: #000;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-bottom: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 40px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .api-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .sdk-examples {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="#" class="logo">KERNELIZE API</a>
+            <ul class="nav-links">
+                <li><a href="#compression" class="active">Compression API</a></li>
+                <li><a href="#query">Query API</a></li>
+                <li><a href="#merge">Merge API</a></li>
+                <li><a href="#distillation">Distillation API</a></li>
+                <li><a href="#marketplace">Marketplace API</a></li>
+                <li><a href="#analytics">Analytics</a></li>
+            </ul>
+            <div class="auth-section">
+                <div class="api-key-display" id="apiKey">sk-ker_xxxxxxxxxxxxxxxxxxxx</div>
+                <button class="btn btn-secondary" onclick="generateNewKey()">New Key</button>
+                <button class="btn btn-primary">Documentation</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Knowledge Compression API</h1>
+            <p>Ultra-dense semantic intelligence kernels. 100×-10,000× compression with zero meaning loss.</p>
+            
+            <div class="api-stats">
+                <div class="stat-card">
+                    <div class="stat-number">0.07ms</div>
+                    <div class="stat-label">Average Response Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">99.7%</div>
+                    <div class="stat-label">Semantic Accuracy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1,247</div>
+                    <div class="stat-label">Available Kernels</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">99.99%</div>
+                    <div class="stat-label">Uptime SLA</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3>API Endpoints</h3>
+                <ul class="endpoint-list">
+                    <li class="endpoint-item">
+                        <a href="#compress" class="endpoint-link active" onclick="showSection('compress')">
+                            <span class="method-badge method-post">POST</span> /v2/compress
+                        </a>
+                    </li>
+                    <li class="endpoint-item">
+                        <a href="#query" class="endpoint-link" onclick="showSection('query')">
+                            <span class="method-badge method-get">GET</span> /v2/kernels/{id}/query
+                        </a>
+                    </li>
+                    <li class="endpoint-item">
+                        <a href="#merge" class="endpoint-link" onclick="showSection('merge')">
+                            <span class="method-badge method-post">POST</span> /v2/kernels/{id}/merge
+                        </a>
+                    </li>
+                    <li class="endpoint-item">
+                        <a href="#distill" class="endpoint-link" onclick="showSection('distill')">
+                            <span class="method-badge method-post">POST</span> /v2/kernels/{id}/distill
+                        </a>
+                    </li>
+                    <li class="endpoint-item">
+                        <a href="#marketplace" class="endpoint-link" onclick="showSection('marketplace')">
+                            <span class="method-badge method-get">GET</span> /v2/marketplace/kernels
+                        </a>
+                    </li>
+                    <li class="endpoint-item">
+                        <a href="#analytics" class="endpoint-link" onclick="showSection('analytics')">
+                            <span class="method-badge method-get">GET</span> /v2/analytics/usage
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content">
+                <!-- Compression API -->
+                <section id="compress" class="endpoint-section active">
+                    <div class="endpoint-header">
+                        <div class="endpoint-title">
+                            <span class="method-badge badge-post">POST</span>
+                            <span class="endpoint-path">/v2/compress</span>
+                        </div>
+                        <p class="endpoint-description">Compress raw knowledge into semantic intelligence kernels with 100×-10,000× compression ratios</p>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="code-section">
+                            <h4>Request</h4>
+                            <div class="code-block">
+                                <pre><span class="keyword">POST</span> https://api.kernelize.com/v2/compress
+<span class="keyword">Authorization:</span> Bearer sk-ker_xxxxxxxxxxxxxxxxxxxx
+<span class="keyword">Content-Type:</span> application/json
+
+{
+  <span class="string">"input"</span>: <span class="string">"Climate change is primarily caused by greenhouse gas emissions from human activities such as burning fossil fuels..."</span>,
+  <span class="string">"input_type"</span>: <span class="string">"text"</span>,
+  <span class="string">"compression_level"</span>: <span class="string">"ultra"</span>,
+  <span class="string">"preserve_context"</span>: <span class="keyword">true</span>,
+  <span class="string">"domain"</span>: <span class="string">"environmental_science"</span>,
+  <span class="string">"options"</span>: {
+    <span class="string">"maintain_causality"</span>: <span class="keyword">true</span>,
+    <span class="string">"preserve_relationships"</span>: <span class="keyword">true</span>,
+    <span class="string">"extract_patterns"</span>: <span class="keyword">true</span>
+  }
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="code-section">
+                            <h4>Response</h4>
+                            <div class="code-block">
+                                <pre>{
+  <span class="string">"kernel_id"</span>: <span class="string">"ker_4a7b2c8d9e1f3g6h"</span>,
+  <span class="string">"compression_ratio"</span>: <span class="number">1247.3</span>,
+  <span class="string">"original_size"</span>: <span class="number">47200</span>,
+  <span class="string">"compressed_size"</span>: <span class="number">37.8</span>,
+  <span class="string">"semantic_fidelity"</span>: <span class="number">99.7</span>,
+  <span class="string">"processing_time_ms"</span>: <span class="number">2.4</span>,
+  <span class="string">"kernel_data"</span>: {
+    <span class="string">"concepts"</span>: [
+      {
+        <span class="string">"id"</span>: <span class="string">"con_001"</span>,
+        <span class="string">"definition"</span>: <span class="string">"Greenhouse effect mechanism"</span>,
+        <span class="string">"weight"</span>: <span class="number">0.97</span>,
+        <span class="string">"relationships"</span>: [<span class="string">"causes_temperature_rise"</span>, <span class="string">"enhanced_by_co2"</span>]
+      }
+    ],
+    <span class="string">"causal_chains"</span>: [
+      {
+        <span class="string">"chain_id"</span>: <span class="string">"chain_fossil_to_warming"</span>,
+        <span class="string">"confidence"</span>: <span class="number">0.94</span>,
+        <span class="string">"steps"</span>: [<span class="string">"fossil_fuel_emission"</span>, <span class="string">"co2_accumulation"</span>, <span class="string">"greenhouse_effect"</span>, <span class="string">"global_warming"</span>]
+      }
+    ]
+  },
+  <span class="string">"api_usage"</span>: {
+    <span class="string">"tokens_used"</span>: <span class="number">156</span>,
+    <span class="string">"cost_usd"</span>: <span class="number">0.00156</span>
+  }
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="demo-section">
+                            <h4>Try It</h4>
+                            <div class="demo-tabs">
+                                <button class="demo-tab active" onclick="switchDemoTab('compress-curl')">cURL</button>
+                                <button class="demo-tab" onclick="switchDemoTab('compress-python')">Python</button>
+                                <button class="demo-tab" onclick="switchDemoTab('compress-javascript')">JavaScript</button>
+                                <button class="demo-tab" onclick="switchDemoTab('compress-go')">Go</button>
+                            </div>
+                            
+                            <div id="compress-curl" class="demo-content">
+                                <textarea class="demo-input" id="compress-input">Climate change is primarily caused by greenhouse gas emissions from human activities such as burning fossil fuels, deforestation, and industrial processes. These activities release carbon dioxide, methane, and other greenhouse gases into the atmosphere, which trap heat and cause global temperatures to rise.</textarea>
+                                <button class="demo-button" onclick="executeCompression()">Execute Compression</button>
+                                <div class="demo-response" id="compress-response">
+                                    <div class="response-header">Response will appear here...</div>
+                                    <div class="json-output"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Query API -->
+                <section id="query" class="endpoint-section">
+                    <div class="endpoint-header">
+                        <div class="endpoint-title">
+                            <span class="method-badge badge-get">GET</span>
+                            <span class="endpoint-path">/v2/kernels/{kernel_id}/query</span>
+                        </div>
+                        <p class="endpoint-description">Query compressed knowledge kernels without decompression. Sub-millisecond semantic search.</p>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="code-section">
+                            <h4>Request</h4>
+                            <div class="code-block">
+                                <pre><span class="keyword">GET</span> https://api.kernelize.com/v2/kernels/ker_4a7b2c8d9e1f3g6h/query
+<span class="keyword">Authorization:</span> Bearer sk-ker_xxxxxxxxxxxxxxxxxxxx
+<span class="keyword">Content-Type:</span> application/json
+
+{
+  <span class="string">"query"</span>: <span class="string">"What are the main causes of global warming?"</span>,
+  <span class="string">"query_type"</span>: <span class="string">"semantic"</span>,
+  <span class="string">"max_results"</span>: <span class="number">10</span>,
+  <span class="string">"confidence_threshold"</span>: <span class="number">0.8</span>,
+  <span class="string">"include_explanations"</span>: <span class="keyword">true</span>
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="code-section">
+                            <h4>Response</h4>
+                            <div class="code-block">
+                                <pre>{
+  <span class="string">"query_id"</span>: <span class="string">"qry_8b3c2d1e9f5g7h2a"</span>,
+  <span class="string">"execution_time_ms"</span>: <span class="number">0.07</span>,
+  <span class="string">"results"</span>: [
+    {
+      <span class="string">"answer"</span>: <span class="string">"Fossil fuel combustion (74% of emissions), deforestation (11%), industrial processes (10%), agriculture (5%)"</span>,
+      <span class="string">"confidence"</span>: <span class="number">0.94</span>,
+      <span class="string">"supporting_evidence"</span>: <span class="number">2847</span>,
+      <span class="string">"concept_matches"</span>: [<span class="string">"con_015"</span>, <span class="string">"con_001"</span>, <span class="string">"con_002"</span>],
+      <span class="string">"explanation"</span>: <span class="string">"Based on causal chain analysis and peer-reviewed sources"</span>
+    }
+  ],
+  <span class="string">"metadata"</span>: {
+    <span class="string">"kernel_version"</span>: <span class="string">"v2.1"</span>,
+    <span class="string">"sources_checked"</span>: <span class="number">2847</span>,
+    <span class="string">"semantic_coverage"</span>: <span class="number">97.3</span>
+  }
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="demo-section">
+                            <h4>Try It</h4>
+                            <div class="demo-tabs">
+                                <button class="demo-tab active" onclick="switchDemoTab('query-curl')">cURL</button>
+                                <button class="demo-tab" onclick="switchDemoTab('query-python')">Python</button>
+                            </div>
+                            
+                            <div id="query-curl" class="demo-content">
+                                <textarea class="demo-input" id="query-input">What are the main causes of global warming?</textarea>
+                                <button class="demo-button" onclick="executeQuery()">Execute Query</button>
+                                <div class="demo-response" id="query-response">
+                                    <div class="response-header">Response will appear here...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Merge API -->
+                <section id="merge" class="endpoint-section">
+                    <div class="endpoint-header">
+                        <div class="endpoint-title">
+                            <span class="method-badge badge-post">POST</span>
+                            <span class="endpoint-path">/v2/kernels/{kernel_id}/merge</span>
+                        </div>
+                        <p class="endpoint-description">Incrementally update existing kernels without recompression. Merge new knowledge with existing semantic structure.</p>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="code-section">
+                            <h4>Request</h4>
+                            <div class="code-block">
+                                <pre><span class="keyword">POST</span> https://api.kernelize.com/v2/kernels/ker_4a7b2c8d9e1f3g6h/merge
+<span class="keyword">Authorization:</span> Bearer sk-ker_xxxxxxxxxxxxxxxxxxxx
+<span class="keyword">Content-Type:</span> application/json
+
+{
+  <span class="string">"new_knowledge"</span>: <span class="string">"Recent studies show renewable energy adoption reducing emissions by 15% annually..."</span>,
+  <span class="string">"merge_strategy"</span>: <span class="string">"incremental"</span>,
+  <span class="string">"conflict_resolution"</span>: <span class="string">"latest_source_priority"</span>,
+  <span class="string">"preserve_history"</span>: <span class="keyword">true</span>
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="code-section">
+                            <h4>Response</h4>
+                            <div class="code-block">
+                                <pre>{
+  <span class="string">"merge_id"</span>: <span class="string">"mrg_9c4d2e1f7g5h3b8c"</span>,
+  <span class="string">"merge_time_ms"</span>: <span class="number">0.5</span>,
+  <span class="string">"conflicts_resolved"</span>: <span class="number">3</span>,
+  <span class="string">"new_concepts_added"</span>: <span class="number">12</span>,
+  <span class="string">"relationships_updated"</span>: <span class="number">27</span>,
+  <span class="string">"kernel_version"</span>: <span class="string">"v2.2"</span>,
+  <span class="string">"backward_compatibility"</span>: <span class="keyword">true</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Distillation API -->
+                <section id="distill" class="endpoint-section">
+                    <div class="endpoint-header">
+                        <div class="endpoint-title">
+                            <span class="method-badge badge-post">POST</span>
+                            <span class="endpoint-path">/v2/kernels/{kernel_id}/distill</span>
+                        </div>
+                        <p class="endpoint-description">Inject kernels directly into LLMs and agents. Enable offline intelligence with 95% model size reduction.</p>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="code-section">
+                            <h4>Request</h4>
+                            <div class="code-block">
+                                <pre><span class="keyword">POST</span> https://api.kernelize.com/v2/kernels/ker_4a7b2c8d9e1f3g6h/distill
+<span class="keyword">Authorization:</span> Bearer sk-ker_xxxxxxxxxxxxxxxxxxxx
+<span class="keyword">Content-Type:</span> application/json
+
+{
+  <span class="string">"target_model"</span>: <span class="string">"llama-3.1-8b"</span>,
+  <span class="string">"distillation_method"</span>: <span class="string">"knowledge_injection"</span>,
+  <span class="string">"performance_target"</span>: <span class="string">"maintain_accuracy"</span>,
+  <span class="string">"deployment_target"</span>: <span class="string">"mobile"</span>
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="code-section">
+                            <h4>Response</h4>
+                            <div class="code-block">
+                                <pre>{
+  <span class="string">"distillation_id"</span>: <span class="string">"dis_7f9g2h4j1k5l3m8n"</span>,
+  <span class="string">"distillation_time_min"</span>: <span class="number">12.4</span>,
+  <span class="string">"model_size_reduction"</span>: <span class="number">94.7</span>,
+  <span class="string">"performance_improvement"</span>: <span class="number">340.2</span>,
+  <span class="string">"distilled_model_path"</span>: <span class="string">"/models/ker_llama_8b_v2.2.gguf"</span>,
+  <span class="string">"inference_speedup"</span>: <span class="number">4.2</span>,
+  <span class="string">"accuracy_retention"</span>: <span class="number">97.8</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Marketplace API -->
+                <section id="marketplace" class="endpoint-section">
+                    <div class="endpoint-header">
+                        <div class="endpoint-title">
+                            <span class="method-badge badge-get">GET</span>
+                            <span class="endpoint-path">/v2/marketplace/kernels</span>
+                        </div>
+                        <p class="endpoint-description">Browse and purchase pre-built domain intelligence kernels. 1,247+ kernels across 89 domains.</p>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="code-section">
+                            <h4>Request</h4>
+                            <div class="code-block">
+                                <pre><span class="keyword">GET</span> https://api.kernelize.com/v2/marketplace/kernels?domain=finance&min_rating=4.5&sort=popularity
+<span class="keyword">Authorization:</span> Bearer sk-ker_xxxxxxxxxxxxxxxxxxxx</pre>
+                            </div>
+                        </div>
+
+                        <div class="code-section">
+                            <h4>Response</h4>
+                            <div class="code-block">
+                                <pre>{
+  <span class="string">"kernels"</span>: [
+    {
+      <span class="string">"kernel_id"</span>: <span class="string">"ker_finance_v3.1"</span>,
+      <span class="string">"name"</span>: <span class="string">"Financial Markets Intelligence"</span>,
+      <span class="string">"domain"</span>: <span class="string">"finance"</span>,
+      <span class="string">"size_mb"</span>: <span class="number">3780</span>,
+      <span class="string">"compression_ratio"</span>: <span class="number">9876</span>,
+      <span class="string">"rating"</span>: <span class="number">4.9</span>,
+      <span class="string">"price_monthly_usd"</span>: <span class="number">8500</span>,
+      <span class="string">"coverage"</span>: <span class="string">"127 global markets, real-time data"</span>,
+      <span class="string">"last_updated"</span>: <span class="string">"2025-12-10T10:30:00Z"</span>
+    }
+  ],
+  <span class="string">"pagination"</span>: {
+    <span class="string">"page"</span>: <span class="number">1</span>,
+    <span class="string">"total_pages"</span>: <span class="number">45</span>,
+    <span class="string">"total_kernels"</span>: <span class="number">1247</span>
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Analytics API -->
+                <section id="analytics" class="endpoint-section">
+                    <div class="endpoint-header">
+                        <div class="endpoint-title">
+                            <span class="method-badge badge-get">GET</span>
+                            <span class="endpoint-path">/v2/analytics/usage</span>
+                        </div>
+                        <p class="endpoint-description">Monitor API usage, performance metrics, and cost analytics across all kernel operations.</p>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="code-section">
+                            <h4>Request</h4>
+                            <div class="code-block">
+                                <pre><span class="keyword">GET</span> https://api.kernelize.com/v2/analytics/usage?period=30d&metrics=requests,cost,performance
+<span class="keyword">Authorization:</span> Bearer sk-ker_xxxxxxxxxxxxxxxxxxxx</pre>
+                            </div>
+                        </div>
+
+                        <div class="code-section">
+                            <h4>Response</h4>
+                            <div class="code-block">
+                                <pre>{
+  <span class="string">"period"</span>: <span class="string">"30d"</span>,
+  <span class="string">"total_requests"</span>: <span class="number">2847562</span>,
+  <span class="string">"total_cost_usd"</span>: <span class="number">4237.89</span>,
+  <span class="string">"average_response_time_ms"</span>: <span class="number">0.067</span>,
+  <span class="string">"success_rate"</span>: <span class="number">99.97</span>,
+  <span class="string">"breakdown"</span>: {
+    <span class="string">"compress_requests"</span>: <span class="number">124567</span>,
+    <span class="string">"query_requests"</span>: <span class="number">2682345</span>,
+    <span name="merge_requests"</span>: <span class="number">34598</span>,
+    <span class="string">"distill_requests"</span>: <span class="number">4052</span>
+  },
+  <span class="string">"cost_breakdown"</span>: {
+    <span class="string">"compression"</span>: <span class="number">1892.34</span>,
+    <span class="string">"queries"</span>: <span class="number">1845.67</span>,
+    <span class="string">"storage"</span>: <span class="number">499.88</span>
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Generate random API key
+        function generateNewKey() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let result = 'sk-ker_';
+            for (let i = 0; i < 20; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('apiKey').textContent = result;
+        }
+
+        // Show section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.endpoint-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.endpoint-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[href="#${sectionId}"]`).classList.add('active');
+        }
+
+        // Switch demo tabs
+        function switchDemoTab(tabId) {
+            const parent = event.target.closest('.demo-section');
+            parent.querySelectorAll('.demo-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            parent.querySelectorAll('.demo-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).style.display = 'block';
+        }
+
+        // Execute compression demo
+        function executeCompression() {
+            const button = event.target;
+            const input = document.getElementById('compress-input').value;
+            const response = document.getElementById('compress-response');
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span> Compressing...';
+            
+            setTimeout(() => {
+                const ratio = Math.max(100, Math.floor(input.length / 2));
+                const size = (input.length * 0.001).toFixed(1);
+                const compressed = (size / ratio).toFixed(2);
+                
+                response.className = 'demo-response response-success';
+                response.innerHTML = `
+                    <div class="response-header">200 OK - 2.4ms</div>
+                    <pre>{
+  <span class="string">"kernel_id"</span>: <span class="string">"ker_${Math.random().toString(36).substr(2, 16)}"</span>,
+  <span class="string">"compression_ratio"</span>: <span class="number">${ratio}</span>,
+  <span class="string">"original_size"</span>: <span class="number">${size}</span>,
+  <span class="string">"compressed_size"</span>: <span class="number">${compressed}</span>,
+  <span class="string">"semantic_fidelity"</span>: <span class="number">99.7</span>,
+  <span class="string">"processing_time_ms"</span>: <span class="number">2.4</span>,
+  <span class="string">"kernel_data"</span>: {
+    <span class="string">"concepts"</span>: [<span class="number">${Math.floor(Math.random() * 50) + 20}</span> concepts extracted],
+    <span class="string">"causal_chains"</span>: [<span class="number">${Math.floor(Math.random() * 10) + 5}</span> relationships identified]
+  },
+  <span class="string">"api_usage"</span>: {
+    <span class="string">"tokens_used"</span>: <span class="number">${Math.floor(input.length / 4)}</span>,
+    <span class="string">"cost_usd"</span>: <span class="number">${(input.length * 0.00001).toFixed(6)}</span>
+  }
+}</pre>
+                `;
+                
+                button.disabled = false;
+                button.textContent = 'Execute Compression';
+            }, 1500);
+        }
+
+        // Execute query demo
+        function executeQuery() {
+            const button = event.target;
+            const input = document.getElementById('query-input').value;
+            const response = document.getElementById('query-response');
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="loading"></span> Querying...';
+            
+            setTimeout(() => {
+                const queryId = Math.random().toString(36).substr(2, 16);
+                const confidence = (0.85 + Math.random() * 0.15).toFixed(2);
+                const evidence = Math.floor(Math.random() * 5000) + 1000;
+                
+                response.className = 'demo-response response-success';
+                response.innerHTML = `
+                    <div class="response-header">200 OK - 0.07ms</div>
+                    <pre>{
+  <span class="string">"query_id"</span>: <span class="string">"qry_${queryId}"</span>,
+  <span class="string">"execution_time_ms"</span>: <span class="number">0.07</span>,
+  <span class="string">"results"</span>: [
+    {
+      <span class="string">"answer"</span>: <span class="string">"Based on comprehensive analysis: ${input.toLowerCase().includes('climate') ? 'Fossil fuel combustion (74%), deforestation (11%), industrial processes (10%), agriculture (5%)' : 'Primary causes identified through semantic analysis of compressed knowledge base'}"</span>,
+      <span class="string">"confidence"</span>: <span class="number">${confidence}</span>,
+      <span class="string">"supporting_evidence"</span>: <span class="number">${evidence}</span>,
+      <span class="string">"concept_matches"</span>: [<span class="string">"con_015"</span>, <span class="string">"con_001"</span>, <span class="string">"con_002"</span>],
+      <span class="string">"explanation"</span>: <span class="string">"Extracted from semantic kernel using causal relationship analysis"</span>
+    }
+  ],
+  <span class="string">"metadata"</span>: {
+    <span class="string">"kernel_version"</span>: <span class="string">"v2.1"</span>,
+    <span class="string">"sources_checked"</span>: <span class="number">${evidence}</span>,
+    <span class="string">"semantic_coverage"</span>: <span class="number">97.3</span>
+  }
+}</pre>
+                `;
+                
+                button.disabled = false;
+                button.textContent = 'Execute Query';
+            }, 800);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            generateNewKey();
+        });
+    </script>
+</body>
+</html>

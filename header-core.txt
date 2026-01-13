@@ -1,0 +1,10 @@
+/**
+ * KERNELIZE Platform - Core Backend
+ * Licensed under the Business Source License 1.1 (BSL 1.1)
+ * 
+ * Copyright (c) 2026 KERNELIZE Platform. All rights reserved.
+ * 
+ * See LICENSE-CORE in the project root for license information.
+ * See LICENSE-SDK for SDK and tool licensing terms.
+ */
+

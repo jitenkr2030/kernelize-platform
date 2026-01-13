@@ -1,0 +1,199 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor:             KERNELIZE Platform
+Licensed Work:        KERNELIZE Platform Core
+                      The "Licensed Work" is the KERNELIZE Platform software,
+                      including source code, documentation, and any associated
+                      files located in the src/ directory.
+
+Additional Use Grant: You may make, use, sell, offer for sale, and import
+                      the Licensed Work for your internal business purposes,
+                      including development, testing, and production use.
+
+Change Date:          January 13, 2030
+
+Change License:       Apache License 2.0
+
+For information about alternative licensing arrangements for the Licensed Work,
+contact licensing@kernelize.platform.
+
+Notice
+
+The Business Source License (this document, or the "License") is not an Open
+Source license. However, the Licensed Work will eventually be made available
+as an Open Source Work under the Change License set forth above.
+
+---
+
+Business Source License 1.1 - Terms and Conditions
+
+This Business Source License ("License") applies to any original work of
+authorship ("Original Work") whose owner ("Licensor") has placed the following
+notice immediately following the copyright notice for the Original Work:
+
+Licensed under the Business Source License 1.1. You may not use this file
+except in compliance with the License. You may obtain a copy of the License at
+
+https://github.com/jitenkr2030/kernelize-platform/blob/master/LICENSE-CORE
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+1. Definitions.
+
+"Change Date" means the date specified in the Change License at
+https://spdx.org/licenses/BSL-1.1.html.
+
+"Change License" means Apache License 2.0 as published by the Apache Software
+Foundation.
+
+"Contributor" means each individual or legal entity that creates, contributes
+to the creation of, or owns the Licensed Work.
+
+"Licensed Work" means the work of authorship, whether Source Code or Object
+Code, made available under this License.
+
+"Licensor" means the individual or entity that offers the Licensed Work under
+this License.
+
+"Source Code" means the preferred form of the Licensed Work for making
+modifications, including source code files, documentation files, and build
+configuration files.
+
+"Object Code" means any form resulting from mechanical transformation or
+translation of Source Code, including but not limited to compiled object code,
+generated documentation, and conversions to other media types.
+
+2. License Grant.
+
+Subject to the terms and conditions of this License, Licensor hereby grants
+You a worldwide, non-exclusive, free-of-charge license to:
+(a) view, reproduce, publicly display, publicly perform, and distribute the
+    Licensed Work;
+(b) make, use, sell, offer for sale, and import the Licensed Work; and
+(c) make, use, sell, offer for sale, and import derivative works of the
+    Licensed Work,
+
+(each, a "Use"), provided that You do not:
+(i) use the Licensed Work for a Database Service, meaning a service that
+    hosts the Licensed Work for access by application programs; or
+(ii) offer the Licensed Work on a hosted service basis (whether as a service
+    bureau, application service provider, or similar service) to third parties.
+
+For purposes of this License, "Database Service" means a service that makes
+the Licensed Work available for access by application programs, whether as a
+standalone offering or as part of a multi-tenant hosting environment.
+
+3. Patent Grant.
+
+Subject to the terms and conditions of this License, each Contributor hereby
+grants You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+irrevocable (except as stated in this section) patent license to make, have
+made, use, offer to sell, sell, import, and otherwise transfer the Licensed
+Work, where such license applies only to those patent claims licensable by
+such Contributor that are necessarily infringed by their contribution(s) alone
+or by combination of their contribution(s) with the Licensed Work to which
+such contribution(s) was submitted. If You institute patent litigation against
+any entity (including a cross-claim or counterclaim in a lawsuit) alleging
+that the Licensed Work or a contribution incorporated within the Licensed
+Work constitutes direct or contributory patent infringement, then any patent
+licenses granted to You under this License for that Licensed Work shall
+terminate as of the date such litigation is filed.
+
+4. Redistribution.
+
+You may reproduce and distribute copies of the Licensed Work or derivative
+works thereof in any medium, with or without modifications, in Source Code
+or Object Code form, provided that You meet the following conditions:
+
+(a) You must give any other recipients of the Licensed Work or derivative
+    work a copy of this License; and
+
+(b) You must cause any modified files to carry prominent notices stating that
+    You changed the files; and
+
+(c) You must retain, in the Source Code form of any derivative works that
+    You distribute, all copyright, patent, trademark, and attribution notices
+    from the Source Code form of the Licensed Work, excluding those notices
+    that do not pertain to any part of the derivative works; and
+
+(d) If the Licensed Work includes a "NOTICE" text file as part of its
+    distribution, then any derivative works that You distribute must include
+    a readable copy of the attribution notices contained within such NOTICE
+    file, excluding those notices that do not pertain to any part of the
+    derivative works, in at least one of the following places: within a
+    NOTICE text file distributed as part of the derivative works; within the
+    Source Code form of the derivative works; or within a display generated
+    by the derivative works.
+
+You may add Your own copyright statement to Your modifications and may
+provide additional or different license terms and conditions for use,
+reproduction, or distribution of Your modifications, or for any such
+derivative works as a whole, provided Your use, reproduction, and
+distribution of the Licensed Work otherwise complies with the conditions
+stated in this License.
+
+5. External Deployment.
+
+The term "External Deployment" means the use or distribution of the Licensed
+Work or any derivative work in a production environment outside Your
+organization. External Deployment does not include use in development,
+testing, or staging environments, nor use in quality assurance or
+demonstration environments.
+
+If You deploy the Licensed Work, or any derivative work thereof, for
+External Deployment, You must include this License, including all terms and
+conditions herein, in any documentation, user interfaces, or other materials
+provided to end users of the Licensed Work or derivative works.
+
+6. Attribution.
+
+You must ensure that any reproduction, redistribution, or derivative work
+of the Licensed Work includes prominent attribution to KERNELIZE Platform
+as the original author or licensor, where such attribution appears in a
+reasonable manner given the medium and context of use.
+
+7. Warranty and Disclaimer.
+
+THE LICENSED WORK IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE LICENSED WORK OR THE USE OR OTHER
+DEALINGS IN THE LICENSED WORK.
+
+8. Termination.
+
+This License and the rights granted hereunder will terminate automatically
+upon any breach by You of the terms of this License. Individuals or entities
+who have received derivative works from You under this License will not have
+their licenses terminated provided such individuals or entities remain in
+full compliance with the License.
+
+9. Change of License.
+
+On the Change Date, the license granted hereunder for the Licensed Work
+shall automatically convert to the terms and conditions of Apache License 2.0
+as published by the Apache Software Foundation. You may continue to use the
+Licensed Work under the terms of the new license after the Change Date.
+
+10. Limitation of Liability.
+
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---
+
+Copyright (c) 2026 KERNELIZE Platform. All rights reserved.
+
+For questions about this license, contact: licensing@kernelize.platform

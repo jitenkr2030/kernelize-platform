@@ -1,0 +1,453 @@
+# KERNELIZE Platform - APM Integration with Jaeger
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-collector
+  namespace: kernelize-monitoring
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jaeger-collector
+  template:
+    metadata:
+      labels:
+        app: jaeger-collector
+    spec:
+      containers:
+      - name: jaeger-collector
+        image: jaegertracing/jaeger-collector:1.47
+        ports:
+        - containerPort: 14250
+          name: grpc
+        - containerPort: 14268
+          name: http
+        - containerPort: 9411
+          name: zipkin
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: "elasticsearch"
+        - name: ES_SERVER_URLS
+          value: "http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"
+        - name: ES_NUM_SHARDS
+          value: "1"
+        - name: ES_NUM_REPLICAS
+          value: "1"
+        - name: COLLECTOR_ZIPKIN_HOST_PORT
+          value: ":9411"
+        - name: COLLECTOR_OTLP_ENABLED
+          value: "true"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 14269
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 14269
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: kernelize-monitoring
+  labels:
+    app: jaeger-collector
+spec:
+  ports:
+  - port: 14250
+    targetPort: 14250
+    name: grpc
+  - port: 14268
+    targetPort: 14268
+    name: http
+  - port: 9411
+    targetPort: 9411
+    name: zipkin
+  selector:
+    app: jaeger-collector
+---
+# Jaeger Query Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-query
+  namespace: kernelize-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger-query
+  template:
+    metadata:
+      labels:
+        app: jaeger-query
+    spec:
+      containers:
+      - name: jaeger-query
+        image: jaegertracing/jaeger-query:1.47
+        ports:
+        - containerPort: 16686
+          name: query-ui
+        - containerPort: 16687
+          name: grpc
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: "elasticsearch"
+        - name: ES_SERVER_URLS
+          value: "http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"
+        - name: BASE_PATH
+          value: "/jaeger"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 16687
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 16687
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  namespace: kernelize-monitoring
+  labels:
+    app: jaeger-query
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 16686
+    targetPort: 16686
+    name: query-ui
+  - port: 16687
+    targetPort: 16687
+    name: grpc
+  selector:
+    app: jaeger-query
+---
+# Jaeger Agent (DaemonSet)
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jaeger-agent
+  namespace: kernelize-monitoring
+spec:
+  selector:
+    matchLabels:
+      app: jaeger-agent
+  template:
+    metadata:
+      labels:
+        app: jaeger-agent
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: jaeger-agent
+        image: jaegertracing/jaeger-agent:1.47
+        ports:
+        - containerPort: 5775
+          name: zipkin-compact
+        - containerPort: 5778
+          name: config-rest
+        - containerPort: 6831
+          name: jaeger-compact
+        - containerPort: 6832
+          name: jaeger-binary
+        - containerPort: 14271
+          name: admin
+        env:
+        - name: REPORTER_GRPC_HOST_PORT
+          value: "jaeger-collector.kernelize-monitoring.svc.cluster.local:14250"
+        - name: LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 14271
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 14271
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+# Prometheus Operator for custom metrics
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-operator
+  namespace: kernelize-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-operator
+  template:
+    metadata:
+      labels:
+        app: prometheus-operator
+    spec:
+      containers:
+      - name: prometheus-operator
+        image: quay.io/prometheus-operator/prometheus-operator:v0.71.2
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 50Mi
+          limits:
+            cpu: 200m
+            memory: 100Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+---
+# Prometheus Configuration
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: kernelize-prometheus
+  namespace: kernelize-monitoring
+spec:
+  serviceAccountName: prometheus
+  serviceMonitorSelector:
+    matchLabels:
+      team: kernelize
+  ruleSelector:
+    matchLabels:
+      prometheus: kernelize
+  resources:
+    requests:
+      memory: 400Mi
+      cpu: 100m
+    limits:
+      memory: 800Mi
+      cpu: 500m
+  retention: 30d
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: gp3
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi
+  additionalScrapeConfigs:
+    name: additional-scrape-configs
+    key: prometheus-additional.yaml
+---
+# Grafana for visualization
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: kernelize-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.0
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kernelize-secrets
+              key: grafana-admin-password
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-piechart-panel,grafana-worldmap-panel"
+        - name: GF_SECURITY_DISABLE_GRAVATAR
+          value: "true"
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: "false"
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+        - name: grafana-config
+          mountPath: /etc/grafana/provisioning
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: grafana-storage
+        emptyDir: {}
+      - name: grafana-config
+        configMap:
+          name: grafana-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: kernelize-monitoring
+  labels:
+    app: grafana
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  selector:
+    app: grafana
+---
+# Service Monitors
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kernelize-api-monitor
+  namespace: kernelize-monitoring
+  labels:
+    team: kernelize
+spec:
+  selector:
+    matchLabels:
+      app: kernelize-api
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kernelize-analytics-monitor
+  namespace: kernelize-monitoring
+  labels:
+    team: kernelize
+spec:
+  selector:
+    matchLabels:
+      app: kernelize-analytics
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kernelize-data-monitor
+  namespace: kernelize-monitoring
+  labels:
+    team: kernelize
+spec:
+  selector:
+    matchLabels:
+      app: kernelize-data
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kernelize-security-monitor
+  namespace: kernelize-monitoring
+  labels:
+    team: kernelize
+spec:
+  selector:
+    matchLabels:
+      app: kernelize-security
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kernelize-ha-monitor
+  namespace: kernelize-monitoring
+  labels:
+    team: kernelize
+spec:
+  selector:
+    matchLabels:
+      app: kernelize-ha
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+# PrometheusRule for custom alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kernelize-alerts
+  namespace: kernelize-monitoring
+  labels:
+    prometheus: kernelize
+spec:
+  groups:
+  - name: kernelize.rules
+    rules:
+    - alert: KernelizeAPIDown
+      expr: up{job="kernelize-api"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "KERNELIZE API is down"
+        description: "KERNELIZE API has been down for more than 1 minute"
+    - alert: KernelizeAPIHighErrorRate
+      expr: rate(kernelize_api_requests_total{status=~"5.."}[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "KERNELIZE API high error rate"
+        description: "API error rate is {{ $value }} errors per second"

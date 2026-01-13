@@ -1,0 +1,559 @@
+# KERNELIZE Platform - Capacity Planning Tools
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: capacity-planner-config
+  namespace: kernelize-monitoring
+data:
+  capacity-planner.py: |
+    #!/usr/bin/env python3
+    """
+    KERNELIZE Platform Capacity Planner
+    Analyzes resource usage patterns and predicts future capacity needs
+    """
+    
+    import json
+    import numpy as np
+    import pandas as pd
+    from datetime import datetime, timedelta
+    import logging
+    from typing import Dict, List, Tuple
+    import requests
+    
+    class CapacityPlanner:
+        def __init__(self, prometheus_url: str, es_url: str):
+            self.prometheus_url = prometheus_url
+            self.es_url = es_url
+            self.logger = self._setup_logging()
+            
+        def _setup_logging(self):
+            logging.basicConfig(
+                level=logging.INFO,
+                format='%(asctime)s - %(levelname)s - %(message)s'
+            )
+            return logging.getLogger(__name__)
+            
+        def get_resource_metrics(self, service: str, duration_hours: int = 168) -> Dict:
+            """Fetch resource usage metrics from Prometheus"""
+            end_time = datetime.now()
+            start_time = end_time - timedelta(hours=duration_hours)
+            
+            # CPU usage queries
+            cpu_query = f'avg(rate(container_cpu_usage_seconds_total{{container!="",pod=~"{service}-.*"}}[5m]))'
+            memory_query = f'avg(container_memory_usage_bytes{{container!="",pod=~"{service}-.*"}})'
+            request_rate_query = f'sum(rate(kernelize_{service}_requests_total[5m]))'
+            
+            queries = {
+                'cpu': cpu_query,
+                'memory': memory_query,
+                'requests': request_rate_query
+            }
+            
+            results = {}
+            for metric_name, query in queries.items():
+                try:
+                    response = requests.get(
+                        f'{self.prometheus_url}/api/v1/query_range',
+                        params={
+                            'query': query,
+                            'start': start_time.isoformat(),
+                            'end': end_time.isoformat(),
+                            'step': '300s'  # 5-minute intervals
+                        }
+                    )
+                    response.raise_for_status()
+                    results[metric_name] = response.json()
+                except Exception as e:
+                    self.logger.error(f"Failed to fetch {metric_name} metrics: {e}")
+                    
+            return results
+            
+        def analyze_usage_patterns(self, metrics: Dict) -> Dict:
+            """Analyze usage patterns and trends"""
+            analysis = {}
+            
+            for metric_name, data in metrics.items():
+                if 'data' not in data or 'result' not in data['data']:
+                    continue
+                    
+                values = []
+                timestamps = []
+                
+                for result in data['data']['result']:
+                    for timestamp, value in result['values']:
+                        timestamps.append(float(timestamp))
+                        values.append(float(value))
+                        
+                if values:
+                    analysis[metric_name] = {
+                        'current': values[-1],
+                        'average': np.mean(values),
+                        'peak': np.max(values),
+                        'minimum': np.min(values),
+                        'std_dev': np.std(values),
+                        'trend': self._calculate_trend(values),
+                        'percentiles': {
+                            'p50': np.percentile(values, 50),
+                            'p95': np.percentile(values, 95),
+                            'p99': np.percentile(values, 99)
+                        }
+                    }
+                    
+            return analysis
+            
+        def _calculate_trend(self, values: List[float]) -> float:
+            """Calculate linear trend coefficient"""
+            if len(values) < 2:
+                return 0.0
+                
+            x = np.arange(len(values))
+            slope, _ = np.polyfit(x, values, 1)
+            return slope
+            
+        def predict_future_capacity(self, analysis: Dict, days_ahead: int = 30) -> Dict:
+            """Predict future resource needs"""
+            predictions = {}
+            
+            for metric_name, stats in analysis.items():
+                if 'trend' in stats:
+                    # Calculate growth rate
+                    current_value = stats['current']
+                    trend_per_hour = stats['trend']
+                    
+                    # Extrapolate future value
+                    hours_ahead = days_ahead * 24
+                    predicted_value = current_value + (trend_per_hour * hours_ahead)
+                    
+                    # Apply safety margin
+                    safety_margin = 1.2  # 20% buffer
+                    recommended_value = predicted_value * safety_margin
+                    
+                    predictions[metric_name] = {
+                        'current': current_value,
+                        'predicted': predicted_value,
+                        'recommended': recommended_value,
+                        'growth_rate_per_hour': trend_per_hour,
+                        'confidence': self._calculate_confidence(stats)
+                    }
+                    
+            return predictions
+            
+        def _calculate_confidence(self, stats: Dict) -> float:
+            """Calculate prediction confidence based on data consistency"""
+            if 'std_dev' in stats and 'average' in stats:
+                cv = stats['std_dev'] / max(stats['average'], 0.001)  # Coefficient of variation
+                # Lower CV = higher confidence
+                confidence = max(0.1, 1.0 - cv)
+                return min(1.0, confidence)
+            return 0.5
+            
+        def generate_capacity_recommendations(self, predictions: Dict) -> List[Dict]:
+            """Generate actionable capacity recommendations"""
+            recommendations = []
+            
+            for metric_name, pred in predictions.items():
+                current = pred['current']
+                recommended = pred['recommended']
+                confidence = pred['confidence']
+                
+                if recommended > current * 1.1:  # 10% increase threshold
+                    recommendations.append({
+                        'service': metric_name,
+                        'type': 'scale_up',
+                        'current_value': current,
+                        'recommended_value': recommended,
+                        'increase_percentage': ((recommended - current) / current) * 100,
+                        'confidence': confidence,
+                        'priority': self._get_priority(predicted_increase=(recommended - current) / current),
+                        'reason': f'Resource usage trending upward. Consider scaling up {metric_name}.'
+                    })
+                elif recommended < current * 0.9:  # 10% decrease threshold
+                    recommendations.append({
+                        'service': metric_name,
+                        'type': 'scale_down',
+                        'current_value': current,
+                        'recommended_value': recommended,
+                        'decrease_percentage': ((current - recommended) / current) * 100,
+                        'confidence': confidence,
+                        'priority': self._get_priority(predicted_increase=(recommended - current) / current),
+                        'reason': f'Resource usage trending downward. Consider scaling down {metric_name}.'
+                    })
+                    
+            return sorted(recommendations, key=lambda x: x['priority'], reverse=True)
+            
+        def _get_priority(self, predicted_increase: float) -> int:
+            """Assign priority based on predicted change"""
+            if abs(predicted_increase) > 0.5:  # > 50% change
+                return 3  # High priority
+            elif abs(predicted_increase) > 0.2:  # > 20% change
+                return 2  # Medium priority
+            else:
+                return 1  # Low priority
+                
+        def generate_cost_analysis(self, recommendations: List[Dict]) -> Dict:
+            """Generate cost impact analysis"""
+            # Cost per unit (example rates)
+            cost_rates = {
+                'cpu': 0.05,      # $0.05 per vCPU hour
+                'memory': 0.01,   # $0.01 per GB hour
+                'requests': 0.001 # $0.001 per request
+            }
+            
+            total_monthly_cost = 0
+            cost_breakdown = {}
+            
+            for rec in recommendations:
+                if rec['type'] == 'scale_up':
+                    change = rec['recommended_value'] - rec['current_value']
+                    monthly_change = change * cost_rates.get(rec['service'], 0.01) * 24 * 30
+                    total_monthly_cost += monthly_change
+                    
+                    if rec['service'] not in cost_breakdown:
+                        cost_breakdown[rec['service']] = 0
+                    cost_breakdown[rec['service']] += monthly_change
+                    
+            return {
+                'total_monthly_impact': total_monthly_cost,
+                'breakdown': cost_breakdown,
+                'roi_estimate': self._calculate_roi(cost_breakdown)
+            }
+            
+        def _calculate_roi(self, cost_breakdown: Dict) -> Dict:
+            """Calculate return on investment for capacity changes"""
+            # Simplified ROI calculation
+            potential_savings = sum(cost_breakdown.values()) * 0.1  # Assume 10% efficiency gain
+            implementation_cost = sum(cost_breakdown.values()) * 0.5  # Implementation cost
+            
+            if implementation_cost > 0:
+                roi = ((potential_savings - implementation_cost) / implementation_cost) * 100
+            else:
+                roi = 0
+                
+            return {
+                'potential_monthly_savings': potential_savings,
+                'implementation_cost': implementation_cost,
+                'roi_percentage': roi,
+                'payback_months': implementation_cost / max(potential_savings, 0.01)
+            }
+            
+        def export_report(self, analysis: Dict, predictions: Dict, 
+                         recommendations: List[Dict], cost_analysis: Dict) -> str:
+            """Export comprehensive capacity planning report"""
+            report = {
+                'timestamp': datetime.now().isoformat(),
+                'analysis_period_hours': 168,
+                'service_analysis': analysis,
+                'predictions': predictions,
+                'recommendations': recommendations,
+                'cost_analysis': cost_analysis,
+                'summary': {
+                    'total_recommendations': len(recommendations),
+                    'high_priority_count': len([r for r in recommendations if r['priority'] == 3]),
+                    'estimated_monthly_cost_impact': cost_analysis.get('total_monthly_impact', 0)
+                }
+            }
+            
+            return json.dumps(report, indent=2)
+            
+        def run_capacity_planning(self, services: List[str]) -> str:
+            """Run complete capacity planning analysis"""
+            self.logger.info("Starting capacity planning analysis...")
+            
+            all_analysis = {}
+            all_predictions = {}
+            all_recommendations = []
+            
+            for service in services:
+                self.logger.info(f"Analyzing service: {service}")
+                
+                # Get metrics
+                metrics = self.get_resource_metrics(service)
+                
+                # Analyze patterns
+                analysis = self.analyze_usage_patterns(metrics)
+                all_analysis[service] = analysis
+                
+                # Predict future needs
+                predictions = self.predict_future_capacity(analysis)
+                all_predictions[service] = predictions
+                
+                # Generate recommendations
+                recommendations = self.generate_capacity_recommendations(predictions)
+                all_recommendations.extend(recommendations)
+                
+            # Cost analysis
+            cost_analysis = self.generate_cost_analysis(all_recommendations)
+            
+            # Export report
+            report = self.export_report(all_analysis, all_predictions, 
+                                      all_recommendations, cost_analysis)
+                                      
+            self.logger.info("Capacity planning analysis completed")
+            return report
+    
+    # Main execution
+    if __name__ == "__main__":
+        planner = CapacityPlanner(
+            prometheus_url="http://prometheus.monitoring.svc.cluster.local:9090",
+            es_url="http://elasticsearch-client.kernelize-logging.svc.cluster.local:9200"
+        )
+        
+        services = ["api", "analytics", "data", "security", "ha"]
+        report = planner.run_capacity_planning(services)
+        
+        # Save report
+        with open('/tmp/capacity-report.json', 'w') as f:
+            f.write(report)
+            
+        print("Capacity planning report generated: /tmp/capacity-report.json")
+  schedule: "0 2 * * *"  # Run daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+---
+# Resource Quotas and Limits
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: kernelize-quota
+  namespace: kernelize-production
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    persistentvolumeclaims: "10"
+    requests.storage: 500Gi
+    pods: "50"
+    services: "20"
+    secrets: "20"
+    configmaps: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: kernelize-limits
+  namespace: kernelize-production
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    type: Container
+  - max:
+      cpu: "2"
+      memory: "4Gi"
+    min:
+      cpu: "50m"
+      memory: "128Mi"
+    type: Container
+  - type: Pod
+    max:
+      cpu: "4"
+      memory: "8Gi"
+---
+# Vertical Pod Autoscaler
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: kernelize-api-vpa
+  namespace: kernelize-production
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kernelize-api
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: kernelize-api
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 2
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kernelize-api-hpa
+  namespace: kernelize-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kernelize-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kernelize-api-pdb
+  namespace: kernelize-production
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: kernelize-api
+---
+# Node Pool Management
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-pool-config
+  namespace: kernelize-monitoring
+data:
+  auto-scaler.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: cluster-autoscaler-status
+      namespace: kube-system
+    data:
+      scale-down-enabled: "true"
+      scale-down-delay-after-add: "10m"
+      scale-down-unneeded-time: "10m"
+      max-node-provision-time: "15m"
+      skip-nodes-with-local-storage: "true"
+      skip-nodes-with-system-pods: "false"
+---
+# Performance Testing Scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: performance-tests
+  namespace: kernelize-monitoring
+data:
+  load-test.py: |
+    #!/usr/bin/env python3
+    """
+    KERNELIZE Platform Performance Testing Suite
+    """
+    
+    import requests
+    import time
+    import concurrent.futures
+    import statistics
+    import logging
+    from datetime import datetime
+    
+    class PerformanceTest:
+        def __init__(self, base_url: str):
+            self.base_url = base_url
+            self.logger = self._setup_logging()
+            
+        def _setup_logging(self):
+            logging.basicConfig(level=logging.INFO)
+            return logging.getLogger(__name__)
+            
+        def test_endpoint(self, endpoint: str, concurrent_users: int = 10, duration_seconds: int = 60):
+            """Test endpoint performance with load"""
+            url = f"{self.base_url}/{endpoint}"
+            results = []
+            
+            def make_request():
+                start_time = time.time()
+                try:
+                    response = requests.get(url, timeout=30)
+                    end_time = time.time()
+                    return {
+                        'status_code': response.status_code,
+                        'response_time': end_time - start_time,
+                        'success': response.status_code < 400,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                except Exception as e:
+                    end_time = time.time()
+                    return {
+                        'status_code': 0,
+                        'response_time': end_time - start_time,
+                        'success': False,
+                        'error': str(e),
+                        'timestamp': datetime.now().isoformat()
+                    }
+            
+            start_time = time.time()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent_users) as executor:
+                futures = []
+                while time.time() - start_time < duration_seconds:
+                    future = executor.submit(make_request)
+                    futures.append(future)
+                    time.sleep(0.1)  # Small delay between requests
+                
+                for future in concurrent.futures.as_completed(futures):
+                    result = future.result()
+                    results.append(result)
+                    
+            return self.analyze_results(results)
+            
+        def analyze_results(self, results):
+            """Analyze performance test results"""
+            response_times = [r['response_time'] for r in results if r['success']]
+            success_rate = len([r for r in results if r['success']]) / len(results) * 100
+            
+            if response_times:
+                return {
+                    'total_requests': len(results),
+                    'successful_requests': len(response_times),
+                    'success_rate': success_rate,
+                    'avg_response_time': statistics.mean(response_times),
+                    'median_response_time': statistics.median(response_times),
+                    'p95_response_time': statistics.quantiles(response_times, n=20)[18] if len(response_times) > 20 else max(response_times),
+                    'max_response_time': max(response_times),
+                    'min_response_time': min(response_times)
+                }
+            else:
+                return {'error': 'No successful requests'}
+                
+        def run_comprehensive_test(self):
+            """Run comprehensive performance tests"""
+            endpoints = ['health', 'ready', 'metrics']
+            results = {}
+            
+            for endpoint in endpoints:
+                self.logger.info(f"Testing endpoint: {endpoint}")
+                result = self.test_endpoint(endpoint)
+                results[endpoint] = result
+                
+            return results
+    
+    # Run tests
+    if __name__ == "__main__":
+        tester = PerformanceTest("https://api.kernelize.platform")
+        results = tester.run_comprehensive_test()
+        print(json.dumps(results, indent=2))
