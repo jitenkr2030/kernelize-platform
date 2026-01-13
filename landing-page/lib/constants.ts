@@ -32,10 +32,10 @@ export const PLATFORM_DESCRIPTION = 'Build, deploy, and scale your applications 
 
 // Navigation links
 export const NAV_LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'Solutions', href: '#solutions' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Documentation', href: '#docs' },
+  { label: 'Features', href: '/features' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Documentation', href: '/docs' },
+  { label: 'Resources', href: '/resources/api' },
 ]
 
 // Social media links
@@ -49,25 +49,25 @@ export const SOCIAL_LINKS = [
 // Footer links organized by category
 export const FOOTER_LINKS = {
   Product: [
-    { label: 'Features', href: '#features' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'Documentation', href: '#docs' },
-    { label: 'Changelog', href: '#changelog' },
+    { label: 'Features', href: '/features' },
+    { label: 'Pricing', href: '/pricing' },
+    { label: 'Documentation', href: '/docs' },
+    { label: 'Changelog', href: '/changelog' },
   ],
   Company: [
-    { label: 'About Us', href: '#about' },
-    { label: 'Blog', href: '#blog' },
-    { label: 'Careers', href: '#careers' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'About Us', href: '/about' },
+    { label: 'Blog', href: '/blog' },
+    { label: 'Careers', href: '/careers' },
+    { label: 'Contact', href: '/contact' },
   ],
   Legal: [
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/cookies' },
+    { label: 'Cookie Policy', href: '/cookie-policy' },
   ],
   Resources: [
-    { label: 'API Reference', href: '/api-docs' },
-    { label: 'SDK Downloads', href: '/sdks' },
+    { label: 'API Reference', href: '/resources/api' },
+    { label: 'SDK Downloads', href: '/resources/sdk' },
     { label: 'Community', href: '/community' },
     { label: 'Support', href: '/support' },
   ],
