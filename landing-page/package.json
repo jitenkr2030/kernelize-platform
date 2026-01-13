@@ -7,7 +7,7 @@
   "author": "KERNELIZE Platform",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jitenkr2030/kernelize-platform.git",
+    "url": "git+https://github.com/jitenkr2030/kernelize-platform.git",
     "directory": "landing-page"
   },
   "scripts": {
@@ -33,5 +33,14 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5"
-  }
+  },
+  "main": "next.config.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/jitenkr2030/kernelize-platform/issues"
+  },
+  "homepage": "https://github.com/jitenkr2030/kernelize-platform#readme"
 }
