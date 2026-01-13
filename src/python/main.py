@@ -34,7 +34,7 @@ from .models.schemas import (
     APIKeyCreate, APIKeyResponse, APIKeyFullResponse,
 )
 
-# 配置日志
+# Configure logging
 logging.basicConfig(
     level=getattr(logging, settings.logging.level),
     format=settings.logging.format,
@@ -42,7 +42,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Prometheus指标
+# Prometheus metrics
 REQUEST_COUNT = Counter(
     'kernelize_requests_total',
     'Total number of requests',
@@ -67,8 +67,8 @@ COMPRESSION_RATIO = Histogram(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理"""
-    # 启动时
+    """Application lifecycle management"""
+    # On startup
     logger.info("Starting KERNELIZE Platform...")
     
     try:
@@ -82,13 +82,13 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # 关闭时
+    # On shutdown
     logger.info("Shutting down KERNELIZE Platform...")
     await close_db()
     logger.info("KERNELIZE Platform shut down complete")
 
 
-# 创建FastAPI应用
+# Create FastAPI application
 app = FastAPI(
     title=settings.api.title,
     description=settings.api.description,
@@ -99,7 +99,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# 配置CORS
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -109,10 +109,10 @@ app.add_middleware(
 )
 
 
-# 中间件：请求跟踪
+# Middleware: Request tracking
 @app.middleware("http")
 async def track_requests(request: Request, call_next):
-    """跟踪请求并记录指标"""
+    """Track requests and record metrics"""
     ACTIVE_CONNECTIONS.inc()
     
     start_time = datetime.utcnow()
@@ -126,7 +126,7 @@ async def track_requests(request: Request, call_next):
     finally:
         ACTIVE_CONNECTIONS.dec()
     
-    # 记录指标
+    # Record metrics
     endpoint = request.url.path
     method = request.method
     
@@ -145,15 +145,15 @@ async def track_requests(request: Request, call_next):
     return response
 
 
-# 异常处理
+# Exception handlers
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
-    """处理验证错误"""
+    """Handle validation errors"""
     return JSONResponse(
         status_code=422,
         content={
             "error": "Validation Error",
-            "message": "请求数据验证失败",
+            "message": "Request data validation failed",
             "details": exc.errors(),
             "timestamp": datetime.utcnow().isoformat(),
         }
@@ -162,7 +162,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    """处理HTTP错误"""
+    """Handle HTTP errors"""
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -175,31 +175,31 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    """处理通用错误"""
+    """Handle general errors"""
     logger.exception(f"Unhandled exception: {exc}")
     return JSONResponse(
         status_code=500,
         content={
             "error": "Internal Server Error",
-            "message": "服务器内部错误",
+            "message": "Server internal error",
             "timestamp": datetime.utcnow().isoformat(),
         }
     )
 
 
-# 依赖注入
+# Dependency injection
 async def get_current_user(request: Request) -> Dict[str, Any]:
-    """获取当前用户"""
+    """Get current user"""
     auth_header = request.headers.get("Authorization")
     
     if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="未提供认证令牌")
+        raise HTTPException(status_code=401, detail="Authentication token not provided")
     
     token = auth_header.split(" ")[1]
     payload = security_manager.verify_token(token)
     
     if not payload:
-        raise HTTPException(status_code=401, detail="无效或过期的令牌")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     
     return {
         "user_id": payload.get("sub"),
@@ -208,16 +208,16 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
     }
 
 
-# ==================== 健康检查端点 ====================
+# ==================== Health check endpoints ====================
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check():
     """
-    健康检查端点
+    Health check endpoint
     
-    返回服务状态、版本信息和各组件健康状况。
+    Returns service status, version information, and component health status.
     """
-    # 检查数据库
+    # Check database
     try:
         db_healthy = await db_manager.health_check()
     except Exception:
@@ -234,7 +234,7 @@ async def health_check():
 
 @app.get("/metrics", tags=["System"])
 async def metrics():
-    """Prometheus指标端点"""
+    """Prometheus metrics endpoint"""
     from fastapi.responses import Response
     return Response(
         content=generate_latest(),
@@ -242,37 +242,37 @@ async def metrics():
     )
 
 
-# ==================== 认证端点 ====================
+# ==================== Authentication endpoints ====================
 
 @app.post("/auth/register", response_model=Dict[str, Any], tags=["Authentication"])
 async def register(user_data: UserCreate):
     """
-    用户注册
+    User registration
     
-    创建新用户账户。
+    Creates a new user account.
     """
     logger.info(f"User registration attempt: {user_data.email}")
     
-    # 验证密码强度
+    # Validate password strength
     is_valid, message = security_manager.validate_password_strength(user_data.password)
     if not is_valid:
         raise HTTPException(status_code=400, detail=message)
     
-    # 检查密码是否匹配
+    # Check if passwords match
     if user_data.password != user_data.confirm_password:
-        raise HTTPException(status_code=400, detail="两次输入的密码不匹配")
+        raise HTTPException(status_code=400, detail="Passwords do not match")
     
-    # 创建用户（实际实现需要数据库操作）
+    # Create user (actual implementation requires database operation)
     user_id = str(user_data.email.split("@")[0])
     
-    # 生成令牌
+    # Generate tokens
     access_token = security_manager.create_access_token(user_id, user_data.email)
     refresh_token = security_manager.create_refresh_token(user_id)
     
     logger.info(f"User registered successfully: {user_data.email}")
     
     return {
-        "message": "用户注册成功",
+        "message": "User registered successfully",
         "user_id": user_id,
         "token": Token(
             access_token=access_token,
@@ -286,24 +286,24 @@ async def register(user_data: UserCreate):
 @app.post("/auth/login", response_model=Dict[str, Any], tags=["Authentication"])
 async def login(credentials: UserLogin):
     """
-    用户登录
+    User login
     
-    验证用户凭据并返回访问令牌。
+    Validates user credentials and returns access token.
     """
     logger.info(f"Login attempt: {credentials.email}")
     
-    # 验证用户（实际实现需要数据库查询）
-    # 这里简化处理
+    # Validate user (actual implementation requires database query)
+    # Simplified here
     user_id = str(credentials.email.split("@")[0])
     
-    # 生成令牌
+    # Generate tokens
     access_token = security_manager.create_access_token(user_id, credentials.email)
     refresh_token = security_manager.create_refresh_token(user_id)
     
     logger.info(f"User logged in successfully: {credentials.email}")
     
     return {
-        "message": "登录成功",
+        "message": "Login successful",
         "user_id": user_id,
         "token": Token(
             access_token=access_token,
@@ -314,7 +314,7 @@ async def login(credentials: UserLogin):
     }
 
 
-# ==================== 压缩端点 ====================
+# ==================== Compression endpoints ====================
 
 @app.post("/v2/compress", response_model=CompressionResponse, tags=["Compression"])
 async def compress_knowledge(
@@ -322,22 +322,23 @@ async def compress_knowledge(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    压缩知识内容
+    Compress knowledge content
     
-    将原始知识内容压缩为语义内核，支持多种压缩级别和选项。
+    Compresses raw knowledge content into semantic kernel with support for
+    multiple compression levels and options.
     
-    - **content**: 要压缩的知识内容
-    - **domain**: 知识领域（general, healthcare, finance, legal等）
-    - **compression_level**: 压缩级别（1-10）
-    - **extract_entities**: 是否提取实体
-    - **extract_relationships**: 是否提取关系
-    - **extract_causality**: 是否提取因果链
+    - **content**: Knowledge content to compress
+    - **domain**: Knowledge domain (general, healthcare, finance, legal, etc.)
+    - **compression_level**: Compression level (1-10)
+    - **extract_entities**: Whether to extract entities
+    - **extract_relationships**: Whether to extract relationships
+    - **extract_causality**: Whether to extract causal chains
     """
     from .services.compression_engine import compression_engine
     
     logger.info(f"Compression request from user: {current_user['user_id']}")
     
-    # 执行压缩
+    # Perform compression
     result = compression_engine.compress(
         content=request.content,
         domain=request.domain,
@@ -349,7 +350,7 @@ async def compress_knowledge(
         generate_embedding=request.generate_embedding,
     )
     
-    # 记录压缩比
+    # Record compression ratio
     COMPRESSION_RATIO.observe(result.compression_ratio)
     
     return CompressionResponse(
@@ -373,9 +374,9 @@ async def batch_compress(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    批量压缩
+    Batch compression
     
-    同时压缩多个知识内容。
+    Compresses multiple knowledge contents simultaneously.
     """
     from .services.compression_engine import compression_engine
     
@@ -423,7 +424,7 @@ async def batch_compress(
     }
 
 
-# ==================== 查询端点 ====================
+# ==================== Query endpoints ====================
 
 @app.post("/v2/kernels/{kernel_id}/query", response_model=QueryResponse, tags=["Query"])
 async def query_kernel(
@@ -432,9 +433,9 @@ async def query_kernel(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    查询知识内核
+    Query knowledge kernel
     
-    在指定的内核中执行语义搜索。
+    Executes semantic search within specified kernel.
     """
     from .services.query_engine import query_engine, QueryType
     
@@ -471,9 +472,9 @@ async def query_all(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    全局查询
+    Global query
     
-    在所有知识内核中执行语义搜索。
+    Executes semantic search across all knowledge kernels.
     """
     from .services.query_engine import query_engine, QueryType
     
@@ -504,7 +505,7 @@ async def query_all(
     )
 
 
-# ==================== 内核管理端点 ====================
+# ==================== Kernel management endpoints ====================
 
 @app.get("/v2/kernels/{kernel_id}", tags=["Kernels"])
 async def get_kernel(
@@ -512,11 +513,11 @@ async def get_kernel(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    获取知识内核
+    Get knowledge kernel
     
-    根据ID检索知识内核的详细信息。
+    Retrieves detailed information about a knowledge kernel by ID.
     """
-    # 实际实现需要从数据库获取
+    # Actual implementation requires fetching from database
     return {
         "kernel_id": kernel_id,
         "status": "available",
@@ -530,30 +531,30 @@ async def delete_kernel(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    删除知识内核
+    Delete knowledge kernel
     
-    根据ID删除指定的知识内核。
+    Deletes a specified knowledge kernel by ID.
     """
     from .services.query_engine import query_engine
     
     success = query_engine.delete_kernel(kernel_id)
     
     if success:
-        return {"message": "内核删除成功", "kernel_id": kernel_id}
+        return {"message": "Kernel deleted successfully", "kernel_id": kernel_id}
     else:
-        raise HTTPException(status_code=404, detail="内核不存在")
+        raise HTTPException(status_code=404, detail="Kernel not found")
 
 
-# ==================== 统计端点 ====================
+# ==================== Statistics endpoints ====================
 
 @app.get("/v2/stats/usage", tags=["Analytics"])
 async def get_usage_stats(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    获取使用统计
+    Get usage statistics
     
-    返回当前用户的使用统计信息。
+    Returns usage statistics for the current user.
     """
     from .services.query_engine import query_engine
     
@@ -569,9 +570,9 @@ async def get_usage_stats(
 @app.get("/v2/stats/performance", tags=["Analytics"])
 async def get_performance_stats():
     """
-    获取性能统计
+    Get performance statistics
     
-    返回系统性能指标。
+    Returns system performance metrics.
     """
     return {
         "uptime_seconds": 0,
@@ -584,14 +585,14 @@ async def get_performance_stats():
     }
 
 
-# ==================== 根端点 ====================
+# ==================== Root endpoint ====================
 
 @app.get("/", tags=["Root"])
 async def root():
     """
-    API根端点
+    API root endpoint
     
-    返回API基本信息和使用指南。
+    Returns API basic information and usage guide.
     """
     return {
         "name": settings.api.title,
@@ -603,7 +604,7 @@ async def root():
     }
 
 
-# 启动应用（用于本地开发）
+# Start application (for local development)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

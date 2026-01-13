@@ -28,16 +28,16 @@ logger = logging.getLogger(__name__)
 
 
 class QueryType(Enum):
-    """查询类型枚举"""
-    SEMANTIC = "semantic"     # 语义搜索
-    EXACT = "exact"           # 精确匹配
-    FUZZY = "fuzzy"           # 模糊匹配
-    HYBRID = "hybrid"         # 混合搜索
+    """Query type enumeration"""
+    SEMANTIC = "semantic"     # Semantic search
+    EXACT = "exact"           # Exact match
+    FUZZY = "fuzzy"           # Fuzzy match
+    HYBRID = "hybrid"         # Hybrid search
 
 
 @dataclass
 class QueryResult:
-    """查询结果"""
+    """Query result"""
     kernel_id: str
     content: str
     similarity_score: float
@@ -58,7 +58,7 @@ class QueryResult:
 
 @dataclass
 class QueryMetrics:
-    """查询指标"""
+    """Query metrics"""
     query_time_ms: int
     total_results: int
     query_type: str
@@ -68,9 +68,9 @@ class QueryMetrics:
 
 class CacheManager:
     """
-    缓存管理器
+    Cache Manager
     
-    提供查询结果缓存和嵌入向量缓存，支持LRU淘汰策略。
+    Provides query result caching and embedding vector caching with LRU eviction strategy.
     """
     
     def __init__(self, max_size: int = 10000, ttl_hours: int = 24):
@@ -82,7 +82,7 @@ class CacheManager:
         self.misses = 0
     
     def get(self, key: str) -> Optional[Any]:
-        """获取缓存值"""
+        """Get cached value"""
         if key in self.cache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
@@ -97,20 +97,20 @@ class CacheManager:
         return None
     
     def set(self, key: str, value: Any) -> None:
-        """设置缓存值"""
+        """Set cached value"""
         if key in self.cache:
             self.access_order.remove(key)
         
         self.cache[key] = (value, time.time())
         self.access_order.append(key)
         
-        # LRU淘汰
+        # LRU eviction
         while len(self.cache) > self.max_size:
             oldest_key = self.access_order.pop(0)
             del self.cache[oldest_key]
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取缓存统计"""
+        """Get cache statistics"""
         total = self.hits + self.misses
         hit_rate = (self.hits / total * 100) if total > 0 else 0
         return {
@@ -121,7 +121,7 @@ class CacheManager:
         }
     
     def clear(self) -> None:
-        """清空缓存"""
+        """Clear cache"""
         self.cache.clear()
         self.access_order.clear()
         self.hits = 0
@@ -130,9 +130,10 @@ class CacheManager:
 
 class EmbeddingGenerator:
     """
-    嵌入向量生成器
+    Embedding Vector Generator
     
-    为文本生成语义嵌入向量，支持多种模型和优化策略。
+    Generates semantic embedding vectors for text with support for multiple
+    models and optimization strategies.
     """
     
     def __init__(self, model_name: str = "all-MiniLM-L6-v2", dimensions: int = 384):
@@ -143,25 +144,25 @@ class EmbeddingGenerator:
     
     def generate(self, text: str) -> List[float]:
         """
-        生成文本嵌入向量
+        Generate text embedding vector
         
-        使用预训练模型将文本转换为语义向量。
-        注意：实际实现中会加载transformers模型。
+        Uses pretrained model to convert text to semantic vector.
+        Note: In actual implementation, transformers model would be loaded.
         """
-        # 模拟嵌入生成（实际会使用sentence-transformers）
-        # 这里生成一个基于文本内容的确定性向量
+        # Simulate embedding generation (would use sentence-transformers in production)
+        # Here generates a deterministic vector based on text content
         
-        # 预处理文本
+        # Preprocess text
         text = text.lower().strip()
         words = re.findall(r'\b[a-z]{2,}\b', text)
         
-        # 使用词向量模拟
+        # Simulate word vectors
         vector = np.zeros(self.dimensions)
         for i, word in enumerate(words[:self.dimensions]):
             hash_val = int(hashlib.md5(word.encode()).hexdigest(), 16)
             vector[i] = (hash_val % 1000) / 1000.0
         
-        # 归一化
+        # Normalize
         norm = np.linalg.norm(vector)
         if norm > 0:
             vector = vector / norm
@@ -169,11 +170,11 @@ class EmbeddingGenerator:
         return vector.tolist()
     
     def batch_generate(self, texts: List[str]) -> List[List[float]]:
-        """批量生成嵌入向量"""
+        """Batch generate embedding vectors"""
         return [self.generate(text) for text in texts]
     
     def cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
-        """计算余弦相似度"""
+        """Calculate cosine similarity"""
         if not vec1 or not vec2:
             return 0.0
         
@@ -190,7 +191,7 @@ class EmbeddingGenerator:
         return float(dot_product / (norm1 * norm2))
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取嵌入生成器统计"""
+        """Get embedding generator statistics"""
         return {
             "model_name": self.model_name,
             "dimensions": self.dimensions,
@@ -200,9 +201,9 @@ class EmbeddingGenerator:
 
 class ExactMatcher:
     """
-    精确匹配器
+    Exact Matcher
     
-    提供基于关键词的精确和模糊匹配功能。
+    Provides keyword-based exact and fuzzy matching functionality.
     """
     
     def __init__(self):
@@ -210,12 +211,12 @@ class ExactMatcher:
         logger.info("ExactMatcher initialized")
     
     def build_index(self, documents: List[Dict[str, Any]]) -> None:
-        """构建文档索引"""
+        """Build document index"""
         for doc in documents:
             kernel_id = doc.get("kernel_id")
             content = doc.get("compressed_content", "")
             
-            # 提取词项
+            # Extract terms
             words = self._tokenize(content)
             for word in words:
                 if word not in self.index:
@@ -224,13 +225,13 @@ class ExactMatcher:
                     self.index[word].append(kernel_id)
     
     def _tokenize(self, text: str) -> set:
-        """文本分词"""
+        """Tokenize text"""
         text = text.lower()
         words = re.findall(r'\b[a-z]{2,}\b', text)
         return set(words)
     
     def exact_search(self, query: str) -> List[str]:
-        """精确搜索"""
+        """Exact search"""
         query_words = self._tokenize(query)
         results = {}
         
@@ -239,12 +240,12 @@ class ExactMatcher:
                 for kernel_id in self.index[word]:
                     results[kernel_id] = results.get(kernel_id, 0) + 1
         
-        # 按匹配词数排序
+        # Sort by number of matching words
         sorted_results = sorted(results.items(), key=lambda x: x[1], reverse=True)
         return [kernel_id for kernel_id, _ in sorted_results]
     
     def fuzzy_search(self, query: str, max_distance: int = 2) -> List[Tuple[str, int]]:
-        """模糊搜索（基于编辑距离）"""
+        """Fuzzy search (based on edit distance)"""
         query_words = self._tokenize(query)
         results = {}
         
@@ -259,7 +260,7 @@ class ExactMatcher:
         return [(kernel_id, int(score)) for kernel_id, score in sorted_results]
     
     def _levenshtein_distance(self, s1: str, s2: str) -> int:
-        """计算编辑距离"""
+        """Calculate edit distance"""
         if len(s1) < len(s2):
             return self._levenshtein_distance(s2, s1)
         
@@ -279,16 +280,17 @@ class ExactMatcher:
         return previous_row[-1]
     
     def clear(self) -> None:
-        """清空索引"""
+        """Clear index"""
         self.index.clear()
 
 
 class HybridSearchEngine:
     """
-    混合搜索引擎
+    Hybrid Search Engine
     
-    结合语义搜索和精确搜索的优势，提供最佳的搜索结果。
-    使用加权融合策略平衡两种搜索方式的结果。
+    Combines the advantages of semantic search and exact search to provide
+    optimal search results. Uses weighted fusion strategy to balance results
+    from both search methods.
     """
     
     def __init__(self):
@@ -304,11 +306,12 @@ class HybridSearchEngine:
         top_k: int = 10,
     ) -> List[Tuple[str, float]]:
         """
-        融合搜索结果
+        Fuse search results
         
-        综合语义相似度和精确匹配分数，返回最终排序结果。
+        Combines semantic similarity and exact match scores to return final
+        ranked results.
         """
-        # 归一化分数
+        # Normalize scores
         max_semantic = max((s for _, s in semantic_results), default=1)
         max_exact = max((e for _, e in exact_results), default=1)
         
@@ -321,10 +324,10 @@ class HybridSearchEngine:
             for kernel_id, score in exact_results
         }
         
-        # 获取所有唯一的kernel_id
+        # Get all unique kernel IDs
         all_kernel_ids = set(normalized_semantic.keys()) | set(normalized_exact.keys())
         
-        # 计算融合分数
+        # Calculate fused scores
         fused_scores = {}
         for kernel_id in all_kernel_ids:
             semantic_score = normalized_semantic.get(kernel_id, 0)
@@ -336,7 +339,7 @@ class HybridSearchEngine:
             )
             fused_scores[kernel_id] = fused_score
         
-        # 排序并返回top_k
+        # Sort and return top_k
         sorted_results = sorted(
             fused_scores.items(),
             key=lambda x: x[1],
@@ -346,7 +349,7 @@ class HybridSearchEngine:
         return sorted_results[:top_k]
     
     def set_weights(self, semantic: float, exact: float) -> None:
-        """设置融合权重"""
+        """Set fusion weights"""
         total = semantic + exact
         self.semantic_weight = semantic / total
         self.exact_weight = exact / total
@@ -354,10 +357,10 @@ class HybridSearchEngine:
 
 class KernelQueryEngine:
     """
-    知识内核查询引擎
+    Knowledge Kernel Query Engine
     
-    顶层查询接口，整合语义搜索、精确匹配和混合搜索，
-    提供统一的查询API和性能优化。
+    Top-level query interface that integrates semantic search, exact matching,
+    and hybrid search to provide unified query API and performance optimization.
     """
     
     def __init__(self):
@@ -366,16 +369,16 @@ class KernelQueryEngine:
         self.hybrid_engine = HybridSearchEngine()
         self.cache = CacheManager(max_size=10000, ttl_hours=24)
         
-        # 模拟知识库存储
+        # Simulated knowledge base storage
         self.knowledge_base: Dict[str, Dict[str, Any]] = {}
         
         logger.info("KernelQueryEngine initialized")
     
     def index_kernel(self, kernel_id: str, content: str, embedding: Optional[List[float]] = None) -> None:
         """
-        索引知识内核
+        Index knowledge kernel
         
-        将知识内核添加到搜索索引中。
+        Adds knowledge kernel to search index.
         """
         kernel_data = {
             "kernel_id": kernel_id,
@@ -398,23 +401,23 @@ class KernelQueryEngine:
         min_similarity: float = 0.0,
     ) -> Tuple[List[QueryResult], QueryMetrics]:
         """
-        执行查询
+        Execute query
         
-        根据指定的查询类型执行相应的搜索策略。
+        Executes appropriate search strategy based on specified query type.
         
         Args:
-            query_text: 查询文本
-            kernel_ids: 可选，限制查询的内核ID列表
-            query_type: 查询类型
-            top_k: 返回结果数量
-            min_similarity: 最小相似度阈值
+            query_text: Query text
+            kernel_ids: Optional, list of kernel IDs to query
+            query_type: Query type
+            top_k: Number of results to return
+            min_similarity: Minimum similarity threshold
         
         Returns:
-            (查询结果列表, 查询指标)
+            (Query result list, Query metrics)
         """
         start_time = time.time()
         
-        # 检查缓存
+        # Check cache
         cache_key = f"{query_type.value}:{query_text}:{kernel_ids}:{top_k}"
         cached_result = self.cache.get(cache_key)
         
@@ -427,7 +430,7 @@ class KernelQueryEngine:
                 embeddings_generated=False,
             )
         
-        # 过滤知识库
+        # Filter knowledge base
         if kernel_ids:
             filtered_kernels = {
                 k: v for k, v in self.knowledge_base.items()
@@ -445,10 +448,10 @@ class KernelQueryEngine:
                 embeddings_generated=False,
             )
         
-        # 生成查询嵌入
+        # Generate query embedding
         query_embedding = self.embedding_generator.generate(query_text)
         
-        # 根据查询类型执行搜索
+        # Execute search based on query type
         if query_type == QueryType.SEMANTIC:
             results = self._semantic_search(query_text, query_embedding, filtered_kernels, top_k)
         elif query_type == QueryType.EXACT:
@@ -458,11 +461,11 @@ class KernelQueryEngine:
         else:  # HYBRID
             results = self._hybrid_search(query_text, query_embedding, filtered_kernels, top_k)
         
-        # 生成高亮
+        # Generate highlights
         for result in results:
             result.highlights = self._generate_highlights(query_text, result.content)
         
-        # 计算指标
+        # Calculate metrics
         query_time_ms = int((time.time() - start_time) * 1000)
         metrics = QueryMetrics(
             query_time_ms=query_time_ms,
@@ -472,7 +475,7 @@ class KernelQueryEngine:
             embeddings_generated=True,
         )
         
-        # 缓存结果
+        # Cache results
         self.cache.set(cache_key, results)
         
         return results, metrics
@@ -484,7 +487,7 @@ class KernelQueryEngine:
         kernels: Dict[str, Dict[str, Any]],
         top_k: int,
     ) -> List[QueryResult]:
-        """语义搜索"""
+        """Semantic search"""
         similarities = []
         
         for kernel_id, kernel_data in kernels.items():
@@ -493,10 +496,10 @@ class KernelQueryEngine:
                 similarity = self.embedding_generator.cosine_similarity(query_embedding, embedding)
                 similarities.append((kernel_id, similarity))
         
-        # 排序
+        # Sort
         similarities.sort(key=lambda x: x[1], reverse=True)
         
-        # 构建结果
+        # Build results
         results = []
         for rank, (kernel_id, score) in enumerate(similarities[:top_k]):
             kernel_data = kernels[kernel_id]
@@ -517,11 +520,11 @@ class KernelQueryEngine:
         kernels: Dict[str, Dict[str, Any]],
         top_k: int,
     ) -> List[QueryResult]:
-        """精确搜索"""
-        # 更新索引
+        """Exact search"""
+        # Update index
         self.exact_matcher.build_index(list(kernels.values()))
         
-        # 执行精确搜索
+        # Execute exact search
         matched_ids = self.exact_matcher.exact_search(query_text)
         
         results = []
@@ -545,11 +548,11 @@ class KernelQueryEngine:
         kernels: Dict[str, Dict[str, Any]],
         top_k: int,
     ) -> List[QueryResult]:
-        """模糊搜索"""
-        # 更新索引
+        """Fuzzy search"""
+        # Update index
         self.exact_matcher.build_index(list(kernels.values()))
         
-        # 执行模糊搜索
+        # Execute fuzzy search
         fuzzy_results = self.exact_matcher.fuzzy_search(query_text)
         
         results = []
@@ -559,7 +562,7 @@ class KernelQueryEngine:
                 results.append(QueryResult(
                     kernel_id=kernel_id,
                     content=kernel_data["content"],
-                    similarity_score=score / 100.0,  # 归一化
+                    similarity_score=score / 100.0,  # Normalize
                     rank=rank + 1,
                     highlights=[],
                     metadata=kernel_data.get("metadata", {}),
@@ -574,8 +577,8 @@ class KernelQueryEngine:
         kernels: Dict[str, Dict[str, Any]],
         top_k: int,
     ) -> List[QueryResult]:
-        """混合搜索"""
-        # 执行两种搜索
+        """Hybrid search"""
+        # Execute both searches
         semantic_results = []
         for kernel_id, kernel_data in kernels.items():
             embedding = kernel_data.get("embedding", [])
@@ -583,12 +586,12 @@ class KernelQueryEngine:
                 similarity = self.embedding_generator.cosine_similarity(query_embedding, embedding)
                 semantic_results.append((kernel_id, similarity))
         
-        # 更新索引并执行精确搜索
+        # Update index and execute exact search
         self.exact_matcher.build_index(list(kernels.values()))
         exact_results = self.exact_matcher.exact_search(query_text)
         exact_scores = [(kid, 1) for kid in exact_results]
         
-        # 融合结果
+        # Fuse results
         fused = self.hybrid_engine.search(
             query_text,
             semantic_results,
@@ -612,7 +615,7 @@ class KernelQueryEngine:
         return results
     
     def _generate_highlights(self, query: str, content: str) -> List[str]:
-        """生成查询高亮"""
+        """Generate query highlights"""
         query_words = set(re.findall(r'\b\w+\b', query.lower()))
         highlights = []
         
@@ -626,7 +629,7 @@ class KernelQueryEngine:
         return highlights[:3]
     
     def delete_kernel(self, kernel_id: str) -> bool:
-        """删除知识内核"""
+        """Delete knowledge kernel"""
         if kernel_id in self.knowledge_base:
             del self.knowledge_base[kernel_id]
             self.exact_matcher.clear()
@@ -635,13 +638,13 @@ class KernelQueryEngine:
         return False
     
     def clear_index(self) -> None:
-        """清空索引"""
+        """Clear index"""
         self.knowledge_base.clear()
         self.exact_matcher.clear()
         self.cache.clear()
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取引擎统计"""
+        """Get engine statistics"""
         return {
             "indexed_kernels": len(self.knowledge_base),
             "cache_stats": self.cache.get_stats(),
@@ -650,17 +653,17 @@ class KernelQueryEngine:
         }
 
 
-# 创建全局查询引擎实例
+# Create global query engine instance
 query_engine = KernelQueryEngine()
 
 
-# 便捷函数
+# Convenience functions
 def semantic_search(
     query: str,
     top_k: int = 10,
     min_similarity: float = 0.0,
 ) -> Tuple[List[QueryResult], QueryMetrics]:
-    """快捷语义搜索函数"""
+    """Quick semantic search function"""
     return query_engine.query(
         query_text=query,
         query_type=QueryType.SEMANTIC,
@@ -673,7 +676,7 @@ def hybrid_search(
     query: str,
     top_k: int = 10,
 ) -> Tuple[List[QueryResult], QueryMetrics]:
-    """快捷混合搜索函数"""
+    """Quick hybrid search function"""
     return query_engine.query(
         query_text=query,
         query_type=QueryType.HYBRID,

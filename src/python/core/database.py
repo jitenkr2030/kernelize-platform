@@ -26,16 +26,16 @@ logger = logging.getLogger(__name__)
 
 
 class Base(DeclarativeBase):
-    """SQLAlchemy声明基类"""
+    """SQLAlchemy declarative base class"""
     pass
 
 
 class DatabaseManager:
     """
-    数据库连接管理器
+    Database connection manager
     
-    提供异步数据库连接池管理、会话创建、健康检查等功能。
-    支持开发和生产环境的不同配置需求。
+    Provides async database connection pool management, session creation,
+    and health checking for production deployments.
     """
     
     def __init__(self):
@@ -47,10 +47,10 @@ class DatabaseManager:
     
     def initialize(self) -> None:
         """
-        初始化数据库引擎和连接池
+        Initialize database engines and connection pools
         
-        根据环境配置创建适当的引擎实例，配置连接池参数，
-        并设置必要的数据库事件监听器。
+        Creates appropriate engine instances based on environment configuration,
+        configures connection pool parameters, and sets up database event listeners.
         """
         if self._initialized:
             logger.warning("Database manager already initialized")
@@ -58,7 +58,7 @@ class DatabaseManager:
         
         db_config = settings.database
         
-        # 创建异步引擎
+        # Create async engine
         self._async_engine = create_async_engine(
             url=db_config.async_url,
             poolclass=AsyncAdaptedQueuePool if settings.environment == "production" else None,
@@ -69,7 +69,7 @@ class DatabaseManager:
             echo=settings.debug,
         )
         
-        # 创建同步引擎（用于迁移和工具）
+        # Create sync engine (for migrations and tools)
         self._sync_engine = create_engine(
             url=db_config.sync_url,
             poolclass=QueuePool,
@@ -80,7 +80,7 @@ class DatabaseManager:
             echo=settings.debug,
         )
         
-        # 创建异步会话工厂
+        # Create async session factory
         self._async_session_factory = async_sessionmaker(
             bind=self._async_engine,
             class_=AsyncSession,
@@ -89,25 +89,25 @@ class DatabaseManager:
             autoflush=False,
         )
         
-        # 创建同步会话工厂
+        # Create sync session factory
         self._sync_session_factory = sessionmaker(
             bind=self._sync_engine,
             autocommit=False,
             autoflush=False,
         )
         
-        # 设置SQLAlchemy事件监听器
+        # Set up SQLAlchemy event listeners
         self._setup_event_listeners()
         
         self._initialized = True
         logger.info("Database manager initialized successfully")
     
     def _setup_event_listeners(self) -> None:
-        """设置数据库事件监听器"""
+        """Set up database event listeners"""
         
         @event.listens_for(self._sync_engine, "connect")
         def set_session_vars(dbapi_connection, connection_record):
-            """设置连接会话变量"""
+            """Set connection session variables"""
             if settings.environment == "production":
                 cursor = dbapi_connection.cursor()
                 cursor.execute("SET statement_timeout = '60s'")
@@ -117,10 +117,10 @@ class DatabaseManager:
     @asynccontextmanager
     async def get_async_session(self) -> AsyncGenerator[AsyncSession, None]:
         """
-        获取异步数据库会话
+        Get async database session
         
-        使用上下文管理器自动处理会话的创建和关闭，
-        确保资源正确释放。
+        Use context manager to automatically handle session creation and closure,
+        ensuring proper resource release.
         """
         if not self._initialized:
             self.initialize()
@@ -137,10 +137,10 @@ class DatabaseManager:
     
     def get_sync_session(self) -> Session:
         """
-        获取同步数据库会话
+        Get sync database session
         
-        注意：调用者负责手动提交和关闭会话。
-        主要用于迁移脚本和管理工具。
+        Note: Caller is responsible for manually committing and closing the session.
+        Mainly used for migration scripts and management tools.
         """
         if not self._initialized:
             self.initialize()
@@ -149,10 +149,10 @@ class DatabaseManager:
     
     async def health_check(self) -> bool:
         """
-        执行数据库健康检查
+        Perform database health check
         
-        尝试执行简单查询验证数据库连接是否正常。
-        返回True表示健康，False表示存在连接问题。
+        Attempt to execute a simple query to verify database connectivity.
+        Returns True if healthy, False if connection issues exist.
         """
         if not self._initialized:
             return False
@@ -167,9 +167,9 @@ class DatabaseManager:
     
     async def close(self) -> None:
         """
-        关闭所有数据库连接
+        Close all database connections
         
-        释放连接池资源，确保优雅关闭。
+        Release connection pool resources to ensure graceful shutdown.
         """
         if self._async_engine:
             await self._async_engine.dispose()
@@ -182,27 +182,27 @@ class DatabaseManager:
     
     @property
     def is_initialized(self) -> bool:
-        """检查数据库管理器是否已初始化"""
+        """Check if database manager is initialized"""
         return self._initialized
 
 
-# 全局数据库管理器实例
+# Global database manager instance
 db_manager = DatabaseManager()
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    FastAPI依赖注入函数
+    FastAPI dependency injection function
     
-    提供异步数据库会话给API端点使用。
-    符合FastAPI的依赖注入模式。
+    Provide async database sessions for API endpoint usage.
+    Follows FastAPI's dependency injection pattern.
     """
     async with db_manager.get_async_session() as session:
         yield session
 
 
 async def init_db() -> None:
-    """初始化数据库表结构"""
+    """Initialize database table structure"""
     from ..models.database import Base
     
     if not db_manager.is_initialized:
@@ -213,5 +213,5 @@ async def init_db() -> None:
 
 
 async def close_db() -> None:
-    """关闭数据库连接"""
+    """Close database connections"""
     await db_manager.close()

@@ -35,15 +35,15 @@ from ..core.database import Base
 
 class User(Base):
     """
-    用户模型
+    User Model
     
-    存储用户账户信息、认证凭据和账户状态。
-    支持邮箱密码认证和API密钥认证两种方式。
+    Stores user account information, authentication credentials, and account status.
+    Supports both email/password authentication and API key authentication.
     """
     
     __tablename__ = "users"
     
-    # 主键和基本信息
+    # Primary key and basic information
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -52,19 +52,19 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     
-    # 账户状态
+    # Account status
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
-    # 用户角色和权限
+    # User roles and permissions
     role: Mapped[str] = mapped_column(String(50), default="user", nullable=False)
     plan_tier: Mapped[str] = mapped_column(String(50), default="free", nullable=False)
     
-    # 使用限制
+    # Usage limits
     monthly_quota: Mapped[int] = mapped_column(Integer, default=1000, nullable=False)
     monthly_usage: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     
-    # 时间戳
+    # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -81,7 +81,7 @@ class User(Base):
         nullable=True,
     )
     
-    # 关系
+    # Relationships
     api_keys: Mapped[List["APIKey"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
@@ -101,10 +101,10 @@ class User(Base):
 
 class APIKey(Base):
     """
-    API密钥模型
+    API Key Model
     
-    用于程序化访问KERNELIZE平台的API密钥。
-    支持多个密钥、过期日期和使用统计。
+    API keys for programmatic access to the KERNELIZE platform.
+    Supports multiple keys, expiration dates, and usage statistics.
     """
     
     __tablename__ = "api_keys"
@@ -120,28 +120,28 @@ class APIKey(Base):
         nullable=False,
     )
     
-    # 密钥信息
+    # Key information
     key_hash: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     key_prefix: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
-    # 密钥状态
+    # Key status
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    # 使用统计
+    # Usage statistics
     request_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    # 时间戳
+    # Timestamp
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
     
-    # 关系
+    # Relationship
     user: Mapped["User"] = relationship(back_populates="api_keys")
     
     def __repr__(self) -> str:
@@ -150,15 +150,15 @@ class APIKey(Base):
 
 class Kernel(Base):
     """
-    知识内核模型
+    Knowledge Kernel Model
     
-    存储压缩后的知识内核，包含原始内容、语义嵌入、
-    元数据和压缩统计信息。
+    Stores compressed knowledge kernels, including original content, semantic embeddings,
+    metadata, and compression statistics.
     """
     
     __tablename__ = "kernels"
     
-    # 主键和标识
+    # Primary key and identifier
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -171,36 +171,36 @@ class Kernel(Base):
         nullable=False,
     )
     
-    # 内容信息
+    # Content information
     original_content: Mapped[str] = mapped_column(Text, nullable=False)
     compressed_content: Mapped[str] = mapped_column(Text, nullable=False)
     content_type: Mapped[str] = mapped_column(String(50), default="text", nullable=False)
     
-    # 语义嵌入
+    # Semantic embeddings
     embedding_vector: Mapped[Optional[List[float]]] = mapped_column(JSONB, nullable=True)
     embedding_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     
-    # 压缩统计
+    # Compression statistics
     original_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     compressed_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     compression_ratio: Mapped[float] = mapped_column(Float, nullable=False)
     
-    # 元数据
+    # Metadata
     domain: Mapped[str] = mapped_column(String(100), default="general", nullable=False)
     language: Mapped[str] = mapped_column(String(10), default="en", nullable=False)
     tags: Mapped[List[str]] = mapped_column(JSONB, default=list, nullable=False)
     metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     
-    # 实体和关系
+    # Entities and relationships
     entities: Mapped[List[dict]] = mapped_column(JSONB, default=list, nullable=False)
     relationships: Mapped[List[dict]] = mapped_column(JSONB, default=list, nullable=False)
     causal_chains: Mapped[List[dict]] = mapped_column(JSONB, default=list, nullable=False)
     
-    # 索引
+    # Indexing
     is_indexed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     search_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     
-    # 时间戳
+    # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -213,14 +213,14 @@ class Kernel(Base):
         nullable=False,
     )
     
-    # 关系
+    # Relationships
     user: Mapped["User"] = relationship(back_populates="kernels")
     queries: Mapped[List["QueryLog"]] = relationship(
         back_populates="kernel",
         cascade="all, delete-orphan",
     )
     
-    # 索引
+    # Indexes
     __table_args__ = (
         Index("idx_kernel_domain", "domain"),
         Index("idx_kernel_created_at", "created_at"),
@@ -234,15 +234,15 @@ class Kernel(Base):
 
 class CompressionJob(Base):
     """
-    压缩任务模型
+    Compression Job Model
     
-    跟踪异步压缩任务的执行状态、进度和结果。
-    支持多模态内容压缩（文本、图像、音频、视频）。
+    Tracks asynchronous compression job execution status, progress, and results.
+    Supports multimodal content compression (text, image, audio, video).
     """
     
     __tablename__ = "compression_jobs"
     
-    # 主键和标识
+    # Primary key and identifier
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -255,18 +255,18 @@ class CompressionJob(Base):
         nullable=False,
     )
     
-    # 任务配置
+    # Job configuration
     content_type: Mapped[str] = mapped_column(String(50), nullable=False)
     compression_level: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     domain: Mapped[str] = mapped_column(String(100), default="general", nullable=False)
     language: Mapped[str] = mapped_column(String(10), default="en", nullable=False)
     
-    # 输入输出
+    # Input and output
     input_source: Mapped[str] = mapped_column(String(500), nullable=False)
     input_metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     output_kernel_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     
-    # 任务状态
+    # Job status
     status: Mapped[str] = mapped_column(
         String(20),
         default="pending",
@@ -275,11 +275,11 @@ class CompressionJob(Base):
     progress: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
-    # 性能统计
+    # Performance statistics
     processing_time_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     peak_memory_mb: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     
-    # 时间戳
+    # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -288,7 +288,7 @@ class CompressionJob(Base):
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    # 关系
+    # Relationship
     user: Mapped["User"] = relationship(back_populates="compression_jobs")
     
     def __repr__(self) -> str:
@@ -297,14 +297,14 @@ class CompressionJob(Base):
 
 class QueryLog(Base):
     """
-    查询日志模型
+    Query Log Model
     
-    记录所有内核查询操作，用于分析、计费和性能优化。
+    Records all kernel query operations for analysis, billing, and performance optimization.
     """
     
     __tablename__ = "query_logs"
     
-    # 主键
+    # Primary key
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -316,16 +316,16 @@ class QueryLog(Base):
         nullable=False,
     )
     
-    # 查询信息
+    # Query information
     query_text: Mapped[str] = mapped_column(Text, nullable=False)
     query_type: Mapped[str] = mapped_column(String(50), nullable=False)  # semantic, exact, fuzzy, hybrid
     response_time_ms: Mapped[int] = mapped_column(Integer, nullable=False)
     
-    # 结果统计
+    # Result statistics
     results_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     relevance_scores: Mapped[List[float]] = mapped_column(JSONB, default=list, nullable=False)
     
-    # 认证信息
+    # Authentication information
     user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -337,21 +337,21 @@ class QueryLog(Base):
         nullable=True,
     )
     
-    # 客户端信息
+    # Client information
     client_ip: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     
-    # 时间戳
+    # Timestamp
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
     
-    # 关系
+    # Relationship
     kernel: Mapped["Kernel"] = relationship(back_populates="queries")
     
-    # 索引
+    # Indexes
     __table_args__ = (
         Index("idx_query_kernel_id", "kernel_id"),
         Index("idx_query_created_at", "created_at"),
@@ -364,9 +364,9 @@ class QueryLog(Base):
 
 class AnalyticsEvent(Base):
     """
-    分析事件模型
+    Analytics Event Model
     
-    收集平台使用事件，用于产品分析、性能监控和业务智能。
+    Collects platform usage events for product analytics, performance monitoring, and business intelligence.
     """
     
     __tablename__ = "analytics_events"
@@ -393,7 +393,7 @@ class AnalyticsEvent(Base):
         nullable=False,
     )
     
-    # 索引
+    # Indexes
     __table_args__ = (
         Index("idx_analytics_event_type", "event_type"),
         Index("idx_analytics_created_at", "created_at"),
@@ -403,7 +403,7 @@ class AnalyticsEvent(Base):
         return f"<AnalyticsEvent(id={self.id}, type={self.event_type})>"
 
 
-# 导出所有模型
+# Export all models
 __all__ = [
     "User",
     "APIKey",

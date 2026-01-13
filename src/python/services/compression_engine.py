@@ -29,15 +29,15 @@ logger = logging.getLogger(__name__)
 
 
 class CompressionLevel(Enum):
-    """压缩级别枚举"""
-    BASIC = 1      # 基础压缩，保持较高可读性
-    INTERMEDIATE = 2  # 平衡压缩率和信息保留
-    ADVANCED = 3   # 高压缩率，可能影响可读性
-    EXPERT = 4     # 最大压缩，保留核心语义
+    """Compression level enumeration"""
+    BASIC = 1       # Basic compression, maintains high readability
+    INTERMEDIATE = 2  # Balanced compression and information retention
+    ADVANCED = 3    # High compression rate, may affect readability
+    EXPERT = 4      # Maximum compression, preserves core semantics
 
 
 class ContentType(Enum):
-    """内容类型枚举"""
+    """Content type enumeration"""
     TEXT = "text"
     CODE = "code"
     STRUCTURED = "structured"
@@ -46,7 +46,7 @@ class ContentType(Enum):
 
 @dataclass
 class Entity:
-    """实体类"""
+    """Entity class"""
     text: str
     entity_type: str
     confidence: float
@@ -67,7 +67,7 @@ class Entity:
 
 @dataclass
 class Relationship:
-    """关系类"""
+    """Relationship class"""
     source_entity: str
     target_entity: str
     relation_type: str
@@ -88,7 +88,7 @@ class Relationship:
 
 @dataclass
 class CausalChain:
-    """因果链类"""
+    """Causal chain class"""
     cause: str
     effect: str
     chain: List[str]
@@ -107,7 +107,7 @@ class CausalChain:
 
 @dataclass
 class CompressionResult:
-    """压缩结果类"""
+    """Compression result class"""
     kernel_id: str
     original_content: str
     compressed_content: str
@@ -139,14 +139,14 @@ class CompressionResult:
 
 class EntityExtractor:
     """
-    实体提取器
+    Entity Extractor
     
-    从文本中提取命名实体、概念和关键信息。
-    支持多种实体类型的识别和分类。
+    Extracts named entities, concepts, and key information from text.
+    Supports recognition and classification of multiple entity types.
     """
     
     def __init__(self):
-        # 预定义的实体模式
+        # Predefined entity patterns
         self.person_pattern = r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b'
         self.org_pattern = r'\b(?:Inc|LLC|Corp|Ltd|Company|Corporation)\b(?:\s+[A-Z][a-z]+)+'
         self.date_pattern = r'\b(?:\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}[-/]\d{1,2}[-/]\d{1,2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4})\b'
@@ -154,7 +154,7 @@ class EntityExtractor:
         self.url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+[^\s]*'
         self.number_pattern = r'\b\d+(?:,\d{3})*(?:\.\d+)?(?:[kmbKMB])?\b'
         
-        # 因果关系指示词
+        # Causal relationship indicator words
         self.causal_indicators = [
             "causes", "results in", "leads to", "results from",
             "because", "due to", "as a result", "therefore",
@@ -164,13 +164,13 @@ class EntityExtractor:
     
     def extract_entities(self, text: str) -> List[Entity]:
         """
-        从文本中提取实体
+        Extract entities from text
         
-        使用正则表达式和模式匹配识别各类实体。
+        Uses regular expressions and pattern matching to identify various entity types.
         """
         entities = []
         
-        # 提取人名
+        # Extract person names
         for match in re.finditer(self.person_pattern, text):
             entities.append(Entity(
                 text=match.group(),
@@ -180,7 +180,7 @@ class EntityExtractor:
                 end_position=match.end(),
             ))
         
-        # 提取组织
+        # Extract organizations
         for match in re.finditer(self.org_pattern, text):
             entities.append(Entity(
                 text=match.group(),
@@ -190,7 +190,7 @@ class EntityExtractor:
                 end_position=match.end(),
             ))
         
-        # 提取日期
+        # Extract dates
         for match in re.finditer(self.date_pattern, text):
             entities.append(Entity(
                 text=match.group(),
@@ -200,7 +200,7 @@ class EntityExtractor:
                 end_position=match.end(),
             ))
         
-        # 提取邮箱
+        # Extract emails
         for match in re.finditer(self.email_pattern, text):
             entities.append(Entity(
                 text=match.group(),
@@ -210,7 +210,7 @@ class EntityExtractor:
                 end_position=match.end(),
             ))
         
-        # 提取URL
+        # Extract URLs
         for match in re.finditer(self.url_pattern, text):
             entities.append(Entity(
                 text=match.group(),
@@ -220,7 +220,7 @@ class EntityExtractor:
                 end_position=match.end(),
             ))
         
-        # 提取数字
+        # Extract numbers
         for match in re.finditer(self.number_pattern, text):
             entities.append(Entity(
                 text=match.group(),
@@ -234,11 +234,11 @@ class EntityExtractor:
     
     def extract_concepts(self, text: str) -> List[str]:
         """
-        提取关键概念
+        Extract key concepts
         
-        基于词频和位置识别文本中的关键概念。
+        Identifies key concepts in text based on word frequency and position.
         """
-        # 简化的概念提取
+        # Simplified concept extraction
         stopwords = {
             "the", "a", "an", "is", "are", "was", "were", "be", "been",
             "being", "have", "has", "had", "do", "does", "did", "will",
@@ -256,15 +256,15 @@ class EntityExtractor:
             if word not in stopwords:
                 word_freq[word] = word_freq.get(word, 0) + 1
         
-        # 返回频率最高的概念
+        # Return most frequent concepts
         sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
         return [word for word, _ in sorted_words[:20]]
     
     def extract_causal_chains(self, text: str) -> List[CausalChain]:
         """
-        提取因果链
+        Extract causal chains
         
-        识别文本中的因果关系和推理链。
+        Identifies causal relationships and reasoning chains in text.
         """
         causal_chains = []
         
@@ -275,11 +275,11 @@ class EntityExtractor:
             if len(sentence) < 20:
                 continue
             
-            # 检查因果指示词
+            # Check for causal indicator words
             has_cause = any(indicator in sentence.lower() for indicator in self.causal_indicators)
             
             if has_cause:
-                # 提取因果对
+                # Extract cause-effect pairs
                 parts = re.split(r'\s+(?:because|due to|as a result of|leads to|causes|results in)\s+', sentence, flags=re.IGNORECASE)
                 
                 if len(parts) == 2:
@@ -300,9 +300,9 @@ class EntityExtractor:
 
 class RelationshipExtractor:
     """
-    关系提取器
+    Relationship Extractor
     
-    识别文本中实体之间的关系和语义连接。
+    Identifies relationships and semantic connections between entities in text.
     """
     
     def __init__(self):
@@ -316,9 +316,9 @@ class RelationshipExtractor:
     
     def extract_relationships(self, text: str, entities: List[Entity]) -> List[Relationship]:
         """
-        从文本中提取关系
+        Extract relationships from text
         
-        使用模式匹配识别实体之间的语义关系。
+        Uses pattern matching to identify semantic relationships between entities.
         """
         relationships = []
         
@@ -330,7 +330,7 @@ class RelationshipExtractor:
                     source = match.group(1).strip()
                     target = match.group(2).strip()
                     
-                    # 获取上下文
+                    # Get context
                     start = max(0, match.start() - 50)
                     end = min(len(text), match.end() + 50)
                     context = text[start:end]
@@ -349,10 +349,10 @@ class RelationshipExtractor:
 
 class SemanticCompressor:
     """
-    语义压缩器
+    Semantic Compressor
     
-    核心压缩算法，实现基于语义的智能压缩。
-    在保持核心意义的同时实现高压缩率。
+    Core compression algorithm implementing semantic-based intelligent compression.
+    Achieves high compression ratios while preserving core meaning.
     """
     
     def __init__(self):
@@ -376,46 +376,46 @@ class SemanticCompressor:
         extract_causality: bool = True,
     ) -> Tuple[str, Dict[str, Any]]:
         """
-        执行语义压缩
+        Perform semantic compression
         
         Args:
-            content: 要压缩的原始内容
-            compression_level: 压缩级别 (1-10)
-            extract_entities: 是否提取实体
-            extract_relationships: 是否提取关系
-            extract_causality: 是否提取因果链
+            content: Raw content to compress
+            compression_level: Compression level (1-10)
+            extract_entities: Whether to extract entities
+            extract_relationships: Whether to extract relationships
+            extract_causality: Whether to extract causal chains
         
         Returns:
-            (压缩后的内容, 元数据字典)
+            (Compressed content, metadata dictionary)
         """
         start_time = time.time()
         
-        # 预处理
+        # Preprocessing
         content = self._preprocess(content)
         
-        # 提取实体
+        # Extract entities
         entities = []
         if extract_entities:
             entities = self.entity_extractor.extract_entities(content)
             logger.info(f"Extracted {len(entities)} entities")
         
-        # 提取关系
+        # Extract relationships
         relationships = []
         if extract_relationships:
             relationships = self.relationship_extractor.extract_relationships(content, entities)
             logger.info(f"Extracted {len(relationships)} relationships")
         
-        # 提取因果链
+        # Extract causal chains
         causal_chains = []
         if extract_causality:
             causal_chains = self.entity_extractor.extract_causal_chains(content)
             logger.info(f"Extracted {len(causal_chains)} causal chains")
         
-        # 执行压缩
+        # Perform compression
         compression_factor = self._get_compression_factor(compression_level)
         compressed_content = self._semantic_compress(content, compression_factor, entities)
         
-        # 后处理
+        # Postprocessing
         compressed_content = self._postprocess(compressed_content)
         
         processing_time = int((time.time() - start_time) * 1000)
@@ -434,23 +434,23 @@ class SemanticCompressor:
         return compressed_content, metadata
     
     def _preprocess(self, text: str) -> str:
-        """文本预处理"""
-        # 移除多余空白
+        """Text preprocessing"""
+        # Remove extra whitespace
         text = re.sub(r'\s+', ' ', text)
-        # 规范化标点
+        # Normalize punctuation
         text = re.sub(r'\s+([.,!?;:])', r'\1', text)
         return text.strip()
     
     def _postprocess(self, text: str) -> str:
-        """文本后处理"""
-        # 确保句子结尾有标点
+        """Text postprocessing"""
+        # Ensure sentences end with punctuation
         text = re.sub(r'([^\n])\n(?=[A-Z])', r'\1.\n', text)
         text = re.sub(r'([^\n])\n(?=[a-z])', r'\1 ', text)
         return text.strip()
     
     def _get_compression_factor(self, level: int) -> float:
-        """根据压缩级别获取压缩因子"""
-        # 级别1-10，压缩率从1.2x到50x
+        """Get compression factor based on compression level"""
+        # Level 1-10, compression ratio from 1.2x to 50x
         return 1.2 + (level - 1) * (50 - 1.2) / 9
     
     def _semantic_compress(
@@ -460,44 +460,44 @@ class SemanticCompressor:
         entities: List[Entity],
     ) -> str:
         """
-        执行核心语义压缩
+        Perform core semantic compression
         
-        使用多种技术实现压缩：
-        1. 移除停用词
-        2. 提取关键词
-        3. 合并相似句子
-        4. 提取核心信息
+        Uses multiple techniques to achieve compression:
+        1. Remove stopwords
+        2. Extract keywords
+        3. Merge similar sentences
+        4. Extract core information
         """
         sentences = re.split(r'(?<=[.!?])\s+', text)
         
         if len(sentences) <= 2:
             return text
         
-        # 评分每个句子的重要性
+        # Score each sentence by importance
         sentence_scores = []
         for i, sentence in enumerate(sentences):
             score = self._score_sentence_importance(sentence, entities, i, len(sentences))
             sentence_scores.append((i, sentence, score))
         
-        # 根据压缩因子保留重要句子
+        # Keep important sentences based on compression factor
         keep_count = max(int(len(sentences) / compression_factor), 1)
         keep_count = min(keep_count, len(sentences))
         
-        # 选择最重要的句子
+        # Select most important sentences
         sentence_scores.sort(key=lambda x: x[2], reverse=True)
         selected_indices = [idx for idx, _, _ in sentence_scores[:keep_count]]
         selected_indices.sort()
         
-        # 重建文本
+        # Reconstruct text
         compressed_sentences = [sentences[i] for i in selected_indices]
         
-        # 如果需要，进一步压缩每个句子
+        # Further compress each sentence if needed
         if compression_factor > 10:
             compressed_sentences = [
                 self._compress_sentence(s) for s in compressed_sentences
             ]
         
-        # 连接句子，添加适当的连接词
+        # Join sentences with appropriate connectors
         if len(compressed_sentences) > 1:
             result = self._intelligent_join(compressed_sentences)
         else:
@@ -513,50 +513,50 @@ class SemanticCompressor:
         total: int,
     ) -> float:
         """
-        评分句子重要性
+        Score sentence importance
         
-        综合考虑以下因素：
-        1. 实体出现频率
-        2. 位置（首句和末句更重要）
-        3. 句子长度
-        4. 关键词出现
+        Considers multiple factors:
+        1. Entity occurrence frequency
+        2. Position (first and last sentences are more important)
+        3. Sentence length
+        4. Keyword occurrence
         """
         score = 0.0
         sentence_lower = sentence.lower()
         
-        # 实体得分
+        # Entity score
         for entity in entities:
             if entity.text in sentence:
                 score += entity.confidence * 2
         
-        # 位置得分
+        # Position score
         if position == 0:
-            score += 3.0  # 首句最重要
+            score += 3.0  # First sentence is most important
         elif position == total - 1:
-            score += 2.0  # 末句次要重要
+            score += 2.0  # Last sentence is less important
         elif position < total * 0.2:
-            score += 1.0  # 前20%也有额外加分
+            score += 1.0  # First 20% gets extra points
         
-        # 因果关系得分
+        # Causal relationship score
         if any(word in sentence_lower for word in self.entity_extractor.causal_indicators):
             score += 2.0
         
-        # 长度得分（太短或太长的句子分数降低）
+        # Length score (sentences that are too short or too long get lower scores)
         word_count = len(sentence.split())
         if 5 <= word_count <= 30:
             score += 1.0
         elif word_count > 50:
             score -= 0.5
         
-        # 数字得分（包含数据的句子通常重要）
+        # Number score (sentences with data are usually important)
         if re.search(r'\d+', sentence):
             score += 1.0
         
         return score
     
     def _compress_sentence(self, sentence: str) -> str:
-        """压缩单个句子"""
-        # 移除介词短语
+        """Compress a single sentence"""
+        # Remove prepositional phrases
         patterns_to_remove = [
             r'\bfor the purpose of\b',
             r'\bin order to\b',
@@ -569,7 +569,7 @@ class SemanticCompressor:
         for pattern in patterns_to_remove:
             sentence = re.sub(pattern, '', sentence, flags=re.IGNORECASE)
         
-        # 简化冗余表达
+        # Simplify redundant expressions
         replacements = {
             'in order to': 'to',
             'for the reason that': 'because',
@@ -585,7 +585,7 @@ class SemanticCompressor:
         return sentence.strip()
     
     def _intelligent_join(self, sentences: List[str]) -> str:
-        """智能连接句子"""
+        """Intelligently join sentences"""
         if len(sentences) <= 1:
             return sentences[0] if sentences else ""
         
@@ -598,17 +598,17 @@ class SemanticCompressor:
             if not curr:
                 continue
             
-            # 检查时间顺序
+            # Check temporal order
             time_indicators = ['then', 'after', 'next', 'subsequently', 'later']
             if any(ind in prev for ind in time_indicators):
                 result.append(curr)
-            # 检查因果关系
+            # Check causal relationships
             elif any(ind in prev for ind in self.entity_extractor.causal_indicators):
                 result.append(curr)
-            # 检查转折
+            # Check transitions
             elif any(ind in curr.lower() for ind in ['however', 'but', 'although', 'nevertheless']):
                 result.append(curr)
-            # 默认用句号连接
+            # Default join with period
             else:
                 if not prev.endswith('.') and not prev.endswith('!') and not prev.endswith('?'):
                     result[-1] = prev + '.'
@@ -619,10 +619,11 @@ class SemanticCompressor:
 
 class KernelCompressionEngine:
     """
-    知识内核压缩引擎
+    Knowledge Kernel Compression Engine
     
-    顶层接口，整合所有压缩组件，提供完整的压缩功能。
-    支持多种内容类型和压缩级别。
+    Top-level interface that integrates all compression components, providing
+    complete compression functionality. Supports multiple content types and
+    compression levels.
     """
     
     def __init__(self):
@@ -643,19 +644,20 @@ class KernelCompressionEngine:
         generate_embedding: bool = False,
     ) -> CompressionResult:
         """
-        压缩知识内容为内核
+        Compress knowledge content into kernel
         
-        执行完整的压缩流程，返回包含压缩结果和元数据的对象。
+        Performs complete compression workflow, returns object containing
+        compression result and metadata.
         """
         start_time = time.time()
         
-        # 生成内核ID
+        # Generate kernel ID
         content_hash = hashlib.md5(content.encode()).hexdigest()[:12]
         kernel_id = f"kz_{content_hash}_{int(time.time())}"
         
         original_size = len(content.encode('utf-8'))
         
-        # 执行压缩
+        # Perform compression
         compressed_content, metadata = self.semantic_compressor.compress(
             content=content,
             compression_level=compression_level,
@@ -666,10 +668,10 @@ class KernelCompressionEngine:
         
         compressed_size = len(compressed_content.encode('utf-8'))
         
-        # 计算压缩比
+        # Calculate compression ratio
         compression_ratio = original_size / compressed_size if compressed_size > 0 else 1.0
         
-        # 提取完整信息用于存储
+        # Extract full information for storage
         entities = [e.to_dict() for e in self.entity_extractor.extract_entities(content)]
         relationships = [r.to_dict() for r in self.relationship_extractor.extract_relationships(content, [])]
         causal_chains = [c.to_dict() for c in self.entity_extractor.extract_causal_chains(content)]
@@ -686,7 +688,7 @@ class KernelCompressionEngine:
             entities=entities,
             relationships=relationships,
             causal_chains=causal_chains,
-            embedding_model=None,  # 嵌入生成在单独的模块中
+            embedding_model=None,  # Embedding generation is in a separate module
             metadata={
                 **metadata,
                 "domain": domain,
@@ -708,9 +710,9 @@ class KernelCompressionEngine:
         compression_level: int = 5,
     ) -> List[CompressionResult]:
         """
-        批量压缩内容
+        Batch compress content
         
-        优化处理多个内容块，提高整体吞吐量。
+        Optimized processing of multiple content chunks for improved throughput.
         """
         results = []
         
@@ -726,7 +728,7 @@ class KernelCompressionEngine:
         return results
     
     def get_compression_stats(self) -> Dict[str, Any]:
-        """获取压缩引擎统计信息"""
+        """Get compression engine statistics"""
         return {
             "engine_version": "1.0.0",
             "supported_formats": ["text", "code", "markdown"],
@@ -749,17 +751,17 @@ class KernelCompressionEngine:
         }
 
 
-# 创建全局引擎实例
+# Create global engine instance
 compression_engine = KernelCompressionEngine()
 
 
-# 便捷函数
+# Convenience functions
 def compress_knowledge(
     content: str,
     domain: str = "general",
     compression_level: int = 5,
 ) -> CompressionResult:
-    """快捷压缩函数"""
+    """Quick compression function"""
     return compression_engine.compress(
         content=content,
         domain=domain,
