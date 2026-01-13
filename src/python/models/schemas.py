@@ -382,3 +382,56 @@ class TokenPayload(BaseModel):
     email: Optional[str] = Field(None, description="User email")
     role: str = Field(default="user", description="User role")
     exp: Optional[int] = Field(None, description="Expiration timestamp")
+
+
+# ==================== Unified Multimodal Schemas ====================
+
+class MultimodalRequest(BaseModel):
+    """Unified multimodal processing request"""
+    content: str = Field(..., description="Base64-encoded media content or URL")
+    media_type: str = Field(..., description="Media type (image, video, audio, document)")
+    language: str = Field(default="en", max_length=10, description="Language code")
+    compression_level: int = Field(default=5, ge=1, le=10, description="Compression level")
+    extract_text: bool = Field(default=True, description="Whether to extract text from media")
+    generate_embedding: bool = Field(default=True, description="Whether to generate embedding vector")
+
+
+class MultimodalResponse(BaseModel):
+    """Unified multimodal processing response"""
+    kernel_id: str = Field(..., description="Kernel ID")
+    media_type: str = Field(..., description="Media type processed")
+    original_size: int = Field(..., description="Original size (bytes)")
+    compressed_size: int = Field(..., description="Compressed size (bytes)")
+    compression_ratio: float = Field(..., description="Compression ratio")
+    extracted_content: Optional[str] = Field(None, description="Extracted text content")
+    embedding: Optional[List[float]] = Field(None, description="Embedding vector")
+    processing_time_ms: int = Field(..., description="Processing time (milliseconds)")
+    created_at: datetime = Field(..., description="Creation time")
+
+
+# ==================== Domain-Specific Schemas ====================
+
+class DomainRequest(BaseModel):
+    """Domain-specific processing request"""
+    content: str = Field(..., description="Knowledge content to process")
+    domain: str = Field(..., description="Target domain (healthcare, finance, legal, technology, education)")
+    language: str = Field(default="en", max_length=10, description="Language code")
+    compression_level: int = Field(default=5, ge=1, le=10, description="Compression level")
+    extract_entities: bool = Field(default=True, description="Whether to extract domain entities")
+    generate_embedding: bool = Field(default=True, description="Whether to generate embedding vector")
+    domain_options: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Domain-specific options")
+
+
+class DomainResponse(BaseModel):
+    """Domain-specific processing response"""
+    kernel_id: str = Field(..., description="Kernel ID")
+    domain: str = Field(..., description="Domain processed")
+    original_size: int = Field(..., description="Original size (bytes)")
+    compressed_size: int = Field(..., description="Compressed size (bytes)")
+    compression_ratio: float = Field(..., description="Compression ratio")
+    compressed_content: str = Field(..., description="Compressed content")
+    domain_entities: List[Dict[str, Any]] = Field(default_factory=list, description="Domain-specific entities")
+    domain_metadata: Optional[Dict[str, Any]] = Field(None, description="Domain-specific metadata")
+    embedding: Optional[List[float]] = Field(None, description="Embedding vector")
+    processing_time_ms: int = Field(..., description="Processing time (milliseconds)")
+    created_at: datetime = Field(..., description="Creation time")

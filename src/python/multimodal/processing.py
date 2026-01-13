@@ -16,7 +16,7 @@ import io
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 
@@ -484,3 +484,21 @@ def process_video(content: bytes, options: Optional[Dict[str, Any]] = None) -> D
         options=options or {},
     )
     return multimodal_engine.process(request)
+
+
+# Convenience function for main.py import
+multimodal_processor = multimodal_engine
+
+
+# Dataclasses for results (matching main.py expectations)
+@dataclass
+class MultimodalResult:
+    """Result dataclass for unified multimodal processing"""
+    kernel_id: str
+    media_type: str
+    original_size: int
+    compressed_size: int
+    compression_ratio: float
+    extracted_content: Optional[str]
+    embedding: Optional[List[float]]
+    processing_time_ms: int

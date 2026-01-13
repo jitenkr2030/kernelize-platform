@@ -49,7 +49,7 @@ class FinanceMetadata(DomainSchema):
         description="Type of financial report",
         pattern="^(balance_sheet|income_statement|cash_flow|10-k|10-q|annual_report)$",
     )
-   auditor: Optional[str] = Field(None, description="Auditing firm")
+    auditor: Optional[str] = Field(None, description="Auditing firm")
     entity_name: Optional[str] = Field(None, description="Reporting entity name")
 
 

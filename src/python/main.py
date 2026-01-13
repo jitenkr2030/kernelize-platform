@@ -4,7 +4,8 @@ KERNELIZE Platform - Main Application
 
 This is the main FastAPI application for the KERNELIZE Knowledge
 Compression Infrastructure. It provides a comprehensive API for
-knowledge compression, semantic search, and kernel management.
+knowledge compression, semantic search, multi-modal processing,
+and domain-specific AI models.
 
 Author: KERNELIZE Team
 Version: 1.0.0
@@ -32,6 +33,8 @@ from .models.schemas import (
     HealthResponse, ErrorResponse, Token,
     UserCreate, UserLogin, UserResponse,
     APIKeyCreate, APIKeyResponse, APIKeyFullResponse,
+    MultimodalRequest, MultimodalResponse,
+    DomainRequest, DomainResponse,
 )
 
 # Configure logging
@@ -503,6 +506,172 @@ async def query_all(
         query_time_ms=metrics.query_time_ms,
         query_type=request.query_type,
     )
+
+
+# ==================== Multimodal Processing endpoints ====================
+
+@app.post("/v2/multimodal/process", response_model=MultimodalResponse, tags=["Multimodal"])
+async def process_multimodal(
+    request: MultimodalRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Process multimodal content
+    
+    Processes images, video, audio, and documents for knowledge extraction
+    and compression with cross-modal semantic linking.
+    
+    - **content**: Base64 encoded media content or URL
+    - **media_type**: Type of media (image, video, audio, document)
+    - **compression_level**: Compression level (1-10)
+    - **extract_text**: Whether to extract text from media
+    - **generate_embedding**: Whether to generate semantic embedding
+    """
+    from .multimodal.processing import multimodal_processor
+    
+    logger.info(f"Multimodal processing request from user: {current_user['user_id']}")
+    logger.info(f"Media type: {request.media_type}")
+    
+    # Process the multimodal content
+    result = multimodal_processor.process(
+        content=request.content,
+        media_type=request.media_type,
+        compression_level=request.compression_level,
+        extract_text=request.extract_text,
+        generate_embedding=request.generate_embedding,
+        language=request.language,
+    )
+    
+    return MultimodalResponse(
+        kernel_id=result.kernel_id,
+        media_type=result.media_type,
+        original_size=result.original_size,
+        compressed_size=result.compressed_size,
+        compression_ratio=result.compression_ratio,
+        extracted_content=result.extracted_content,
+        embedding=result.embedding,
+        processing_time_ms=result.processing_time_ms,
+        created_at=datetime.utcnow(),
+    )
+
+
+@app.post("/v2/multimodal/batch", tags=["Multimodal"])
+async def batch_multimodal_process(
+    requests: list[MultimodalRequest],
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Batch multimodal processing
+    
+    Processes multiple media files simultaneously.
+    """
+    from .multimodal.processing import multimodal_processor
+    
+    logger.info(f"Batch multimodal processing request: {len(requests)} items")
+    
+    results = []
+    total_original = 0
+    total_compressed = 0
+    
+    for request in requests:
+        result = multimodal_processor.process(
+            content=request.content,
+            media_type=request.media_type,
+            compression_level=request.compression_level,
+            extract_text=request.extract_text,
+            generate_embedding=request.generate_embedding,
+            language=request.language,
+        )
+        
+        results.append(MultimodalResponse(
+            kernel_id=result.kernel_id,
+            media_type=result.media_type,
+            original_size=result.original_size,
+            compressed_size=result.compressed_size,
+            compression_ratio=result.compression_ratio,
+            extracted_content=result.extracted_content,
+            embedding=result.embedding,
+            processing_time_ms=result.processing_time_ms,
+            created_at=datetime.utcnow(),
+        ))
+        
+        total_original += result.original_size
+        total_compressed += result.compressed_size
+    
+    avg_ratio = total_original / total_compressed if total_compressed > 0 else 1.0
+    
+    return {
+        "results": [r.model_dump() for r in results],
+        "total_original_size": total_original,
+        "total_compressed_size": total_compressed,
+        "average_compression_ratio": avg_ratio,
+    }
+
+
+# ==================== Domain-Specific Processing endpoints ====================
+
+@app.post("/v2/domain/process", response_model=DomainResponse, tags=["Domain"])
+async def process_domain_content(
+    request: DomainRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Process domain-specific content
+    
+    Applies domain-specific AI models for specialized knowledge compression
+    and extraction in Healthcare, Finance, Legal, Technology, and Education.
+    
+    - **content**: Knowledge content to process
+    - **domain**: Target domain (healthcare, finance, legal, technology, education)
+    - **compression_level**: Compression level (1-10)
+    - **domain_options**: Domain-specific processing options
+    """
+    from .domain import domain_processor
+    
+    logger.info(f"Domain processing request from user: {current_user['user_id']}")
+    logger.info(f"Target domain: {request.domain}")
+    
+    # Process the domain-specific content
+    result = domain_processor.process(
+        content=request.content,
+        domain=request.domain,
+        compression_level=request.compression_level,
+        language=request.language,
+        extract_entities=request.extract_entities,
+        generate_embedding=request.generate_embedding,
+        domain_options=request.domain_options,
+    )
+    
+    return DomainResponse(
+        kernel_id=result.kernel_id,
+        domain=result.domain,
+        original_size=result.original_size,
+        compressed_size=result.compressed_size,
+        compression_ratio=result.compression_ratio,
+        compressed_content=result.compressed_content,
+        domain_entities=result.domain_entities,
+        domain_metadata=result.domain_metadata,
+        embedding=result.embedding,
+        processing_time_ms=result.processing_time_ms,
+        created_at=datetime.utcnow(),
+    )
+
+
+@app.get("/v2/domain/domains", tags=["Domain"])
+async def list_domains():
+    """
+    List available domains
+    
+    Returns the list of supported domain-specific AI models.
+    """
+    from .domain import domain_processor
+    
+    domains = domain_processor.get_available_domains()
+    
+    return {
+        "domains": domains,
+        "count": len(domains),
+    }
 
 
 # ==================== Kernel management endpoints ====================

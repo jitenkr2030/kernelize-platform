@@ -306,7 +306,7 @@ class TestMultimodalEngine:
         links = engine._generate_cross_modal_links(video_result, "video")
         
         assert "audio_visual" in links
-        assert "transcript_keywords" in links
+        assert "transcript_keywords" in links["audio_visual"]
 
 
 class TestMultimodalRequests:
