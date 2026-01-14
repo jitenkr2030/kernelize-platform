@@ -20,7 +20,6 @@ from typing import Optional, Dict, Any, List, Set
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
-from semantic_version import Version
 import logging
 
 logger = logging.getLogger(__name__)
