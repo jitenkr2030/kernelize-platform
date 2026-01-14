@@ -54,6 +54,10 @@ dependencies = [
  # PDF处理
  "weasyprint>=65.1",
  "sqlalchemy>=2.0.45",
+ "graphene>=3.4.3",
+ "graphene-sqlalchemy>=2.1.0",
+ "strawberry-graphql>=0.289.0",
+ "aiojobs>=1.4.0",
 ]
 
 [build-system]

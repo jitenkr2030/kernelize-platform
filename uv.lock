@@ -50,6 +50,15 @@ wheels = [
 ]
 
 [[package]]
+name = "aiojobs"
+version = "1.4.0"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/03/54/751969398e2039b4dc458fa153dc066a0f7337a5b480d58944f59b7b38ae/aiojobs-1.4.0.tar.gz", hash = "sha256:463665c75d1fcc46c78d44375c1034abf5e3f087894b0fc5ec4dd16ef90fdc98" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/ce/89/5a30b3c041712a8b2dadb5ccef2bae12a874469650c61c018705039699cd/aiojobs-1.4.0-py3-none-any.whl", hash = "sha256:e95eb0d10d1f6095aefb04d228d2b4b3747514503f26540de722c2228a8500ca" },
+]
+
+[[package]]
 name = "aiosignal"
 version = "1.4.0"
 source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
@@ -250,6 +259,18 @@ wheels = [
 ]
 
 [[package]]
+name = "cross-web"
+version = "0.4.1"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/a4/58/e688e99d1493c565d1587e64b499268d0a3129ae59f4efe440aac395f803/cross_web-0.4.1.tar.gz", hash = "sha256:0466295028dcae98c9ab3d18757f90b0e74fac2ff90efbe87e74657546d9993d" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/67/49/92b46b6e65f09b717a66c4e5a9bc47a45ebc83dd0e0ed126f8258363479d/cross_web-0.4.1-py3-none-any.whl", hash = "sha256:41b07c3a38253c517ec0603c1a366353aff77538946092b0f9a2235033f192c2" },
+]
+
+[[package]]
 name = "cryptography"
 version = "46.0.3"
 source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
@@ -410,6 +431,57 @@ wheels = [
     { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/b8/af/38e51a553dd66eb064cdf193841f16f077585d4d28394c2fa6235cb41765/frozenlist-1.8.0-cp312-cp312-win_amd64.whl", hash = "sha256:34187385b08f866104f0c0617404c8eb08165ab1272e884abc89c112e9c00746" },
     { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/a7/06/1dc65480ab147339fecc70797e9c2f69d9cea9cf38934ce08df070fdb9cb/frozenlist-1.8.0-cp312-cp312-win_arm64.whl", hash = "sha256:fe3c58d2f5db5fbd18c2987cba06d51b0529f52bc3a6cdc33d3f4eab725104bd" },
     { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/9a/9a/e35b4a917281c0b8419d4207f4334c8e8c5dbf4f3f5f9ada73958d937dcc/frozenlist-1.8.0-py3-none-any.whl", hash = "sha256:0c18a16eab41e82c295618a77502e17b195883241c563b00f0aa5106fc4eaa0d" },
+]
+
+[[package]]
+name = "graphene"
+version = "3.4.3"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+dependencies = [
+    { name = "graphql-core" },
+    { name = "graphql-relay" },
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/cc/f6/bf62ff950c317ed03e77f3f6ddd7e34aaa98fe89d79ebd660c55343d8054/graphene-3.4.3.tar.gz", hash = "sha256:2a3786948ce75fe7e078443d37f609cbe5bb36ad8d6b828740ad3b95ed1a0aaa" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/66/e0/61d8e98007182e6b2aca7cf65904721fb2e4bce0192272ab9cb6f69d8812/graphene-3.4.3-py2.py3-none-any.whl", hash = "sha256:820db6289754c181007a150db1f7fff544b94142b556d12e3ebc777a7bf36c71" },
+]
+
+[[package]]
+name = "graphene-sqlalchemy"
+version = "2.1.0"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+dependencies = [
+    { name = "graphene" },
+    { name = "singledispatch" },
+    { name = "six" },
+    { name = "sqlalchemy" },
+]
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/99/6e/c40b4fdeb7ad90082dcf52fa7ae26f35dfc30f94f67bd6d2b3507a777142/graphene-sqlalchemy-2.1.0.tar.gz", hash = "sha256:8260a128f360eda5437147a3cb72809e267fa8e2464f9996ff95ddc47239dcec" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/cc/6a/4b1bd01cc18c95b107319d9d7e48f584255abfe717a1a2893a63ef43d70f/graphene_sqlalchemy-2.1.0-py2.py3-none-any.whl", hash = "sha256:5bfc93986c5e6001861e8cdfe33eeb5094ca1f30efde6822387e13070ec3ab82" },
+]
+
+[[package]]
+name = "graphql-core"
+version = "3.2.7"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/ac/9b/037a640a2983b09aed4a823f9cf1729e6d780b0671f854efa4727a7affbe/graphql_core-3.2.7.tar.gz", hash = "sha256:27b6904bdd3b43f2a0556dad5d579bdfdeab1f38e8e8788e555bdcb586a6f62c" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/0a/14/933037032608787fb92e365883ad6a741c235e0ff992865ec5d904a38f1e/graphql_core-3.2.7-py3-none-any.whl", hash = "sha256:17fc8f3ca4a42913d8e24d9ac9f08deddf0a0b2483076575757f6c412ead2ec0" },
+]
+
+[[package]]
+name = "graphql-relay"
+version = "3.2.0"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+dependencies = [
+    { name = "graphql-core" },
+]
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/d1/13/98fbf8d67552f102488ffc16c6f559ce71ea15f6294728d33928ab5ff14d/graphql-relay-3.2.0.tar.gz", hash = "sha256:1ff1c51298356e481a0be009ccdff249832ce53f30559c1338f22a0e0d17250c" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/74/16/a4cf06adbc711bd364a73ce043b0b08d8fa5aae3df11b6ee4248bcdad2e0/graphql_relay-3.2.0-py3-none-any.whl", hash = "sha256:c9b22bd28b170ba1fe674c74384a8ff30a76c8e26f88ac3aa1584dd3179953e5" },
 ]
 
 [[package]]
@@ -1279,6 +1351,15 @@ wheels = [
 ]
 
 [[package]]
+name = "singledispatch"
+version = "4.1.2"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/9e/2c/7a556f0b5c96161417df04b9af069b8e4d060c425f4369b9966271f70ba4/singledispatch-4.1.2.tar.gz", hash = "sha256:0ad18e5a55c54a836a695a4e7c12faa05adfe88c7eeb64dcd331a4b13934c3b6" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/71/9b/93adabae9d3979ac081f4488d3da1cf8ad8f3b27660f896d59c5a088253b/singledispatch-4.1.2-py3-none-any.whl", hash = "sha256:24802c4e743a252645c461e71abcaa95c3f678a96688e72bb0bf63e663018c7a" },
+]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
@@ -1369,6 +1450,22 @@ wheels = [
     { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/81/68/dddd76117df2ef14c943c6bbb6618be5c9401280046f4ddfc9fb4596a1b8/statsmodels-0.14.6-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:19b58cf7474aa9e7e3b0771a66537148b2df9b5884fbf156096c0e6c1ff0469d" },
     { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/56/4a/dce451c74c4050535fac1ec0c14b80706d8fc134c9da22db3c8a0ec62c33/statsmodels-0.14.6-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:81e7dcc5e9587f2567e52deaff5220b175bf2f648951549eae5fc9383b62bc37" },
     { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/60/15/3daba2df40be8b8a9a027d7f54c8dedf24f0d81b96e54b52293f5f7e3418/statsmodels-0.14.6-cp312-cp312-win_amd64.whl", hash = "sha256:b5eb07acd115aa6208b4058211138393a7e6c2cf12b6f213ede10f658f6a714f" },
+]
+
+[[package]]
+name = "strawberry-graphql"
+version = "0.289.0"
+source = { registry = "http://mirrors.cloud.aliyuncs.com/pypi/simple" }
+dependencies = [
+    { name = "cross-web" },
+    { name = "graphql-core" },
+    { name = "packaging" },
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/90/8d/491b4912919e45466e998b24e31eab708b1f1201fbf82a362d83f8c9ffcd/strawberry_graphql-0.289.0.tar.gz", hash = "sha256:cb5b6718d7f6a99b4a5d6edf0d76a6b4e414e04b1ad93662dff402b52ed565f2" }
+wheels = [
+    { url = "http://mirrors.cloud.aliyuncs.com/pypi/packages/1f/88/6a831f429d15c5d4bf4cc6af48acf1d9fbc2187c19b8834efc84d80ad550/strawberry_graphql-0.289.0-py3-none-any.whl", hash = "sha256:8fd30c3de55bb518dae68088d43259c831a68a1a688870733a6fcba7512368d0" },
 ]
 
 [[package]]
@@ -1525,10 +1622,13 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
+    { name = "aiojobs" },
     { name = "beautifulsoup4" },
     { name = "docstring-parser" },
     { name = "docx2txt" },
     { name = "edge-tts" },
+    { name = "graphene" },
+    { name = "graphene-sqlalchemy" },
     { name = "html5lib" },
     { name = "httpx" },
     { name = "librosa" },
@@ -1559,6 +1659,7 @@ dependencies = [
     { name = "soundfile" },
     { name = "sqlalchemy" },
     { name = "statsmodels" },
+    { name = "strawberry-graphql" },
     { name = "weasyprint" },
     { name = "wget" },
     { name = "wordcloud" },
@@ -1568,10 +1669,13 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = "==3.11.16" },
+    { name = "aiojobs", specifier = ">=1.4.0" },
     { name = "beautifulsoup4", specifier = ">=4.12.3" },
     { name = "docstring-parser", specifier = ">=0.16" },
     { name = "docx2txt", specifier = ">=0.8" },
     { name = "edge-tts", specifier = ">=6.1.12" },
+    { name = "graphene", specifier = ">=3.4.3" },
+    { name = "graphene-sqlalchemy", specifier = ">=2.1.0" },
     { name = "html5lib", specifier = ">=1.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "librosa", specifier = ">=0.10.2" },
@@ -1602,6 +1706,7 @@ requires-dist = [
     { name = "soundfile", specifier = ">=0.12.1" },
     { name = "sqlalchemy", specifier = ">=2.0.45" },
     { name = "statsmodels", specifier = ">=0.14.1" },
+    { name = "strawberry-graphql", specifier = ">=0.289.0" },
     { name = "weasyprint", specifier = ">=65.1" },
     { name = "wget", specifier = ">=3.2" },
     { name = "wordcloud", specifier = ">=1.9.3" },
