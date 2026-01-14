@@ -25,35 +25,36 @@ import Link from 'next/link'
 const plans = [
   {
     name: 'Starter',
-    price: 0,
-    description: 'Perfect for individual developers and small projects',
-    gradient: 'from-slate-500 to-slate-600',
+    price: 299,
+    description: 'Perfect for small to medium businesses and startups getting started with data integration',
+    gradient: 'from-emerald-500 to-teal-600',
     features: [
-      'Up to 1GB bandwidth/month',
-      '1 custom domain',
-      'Basic analytics',
-      'Community support',
-      '5 API endpoints',
-      '7-day data retention',
+      'Up to 1TB/month data processing',
+      '10 third-party connectors',
+      '25 automated workflows',
+      '100GB compressed data storage',
+      'Email support & documentation',
+      'Up to 5 team members',
+      'Basic analytics dashboard',
     ],
-    cta: 'Start Free',
+    cta: 'Start Free Trial',
     popular: false,
-    limit: 'Free forever',
+    limit: '30-day trial',
   },
   {
-    name: 'Pro',
-    price: 49,
-    description: 'Ideal for growing teams and production applications',
+    name: 'Professional',
+    price: 999,
+    description: 'Ideal for growing enterprises and data teams requiring advanced capabilities',
     gradient: 'from-primary to-purple-500',
     features: [
-      'Up to 100GB bandwidth/month',
-      'Unlimited custom domains',
-      'Advanced analytics & reports',
+      'Up to 10TB/month data processing',
+      '25+ connectors (Snowflake, Databricks, Tableau, Power BI)',
+      'Unlimited workflows with custom triggers',
+      '1TB compressed data storage',
+      'SSO, RBAC, audit logging',
+      'Advanced compression analytics & cost optimization',
       'Priority email & chat support',
-      'Unlimited API endpoints',
-      '30-day data retention',
-      'AI compression (10GB/month)',
-      'Custom rate limits',
+      'Up to 25 team members',
     ],
     cta: 'Start Free Trial',
     popular: true,
@@ -61,21 +62,37 @@ const plans = [
   },
   {
     name: 'Enterprise',
-    price: 299,
-    description: 'For large organizations with advanced requirements',
+    price: 2999,
+    description: 'For large enterprises and regulated industries requiring maximum performance and compliance',
     gradient: 'from-amber-500 to-orange-500',
     features: [
-      'Unlimited bandwidth',
-      'Unlimited custom domains',
-      'Custom analytics & dashboards',
-      '24/7 phone & dedicated support',
-      '99.99% SLA guarantee',
-      'Unlimited data retention',
-      'AI compression (unlimited)',
-      'Custom rate limits',
-      'On-premise deployment',
-      'SSO & SAML integration',
-      'Dedicated success manager',
+      'Unlimited data processing (fair usage policy)',
+      'Full marketplace access + custom connectors',
+      'Advanced workflow automation with AI',
+      'Unlimited compressed data storage',
+      'Full compliance (GDPR, HIPAA, SOC 2), encryption at rest',
+      'Multi-region deployment, high availability',
+      'Custom BI dashboards, predictive analytics',
+      '24/7 phone support, dedicated account manager',
+      'Unlimited team members',
+    ],
+    cta: 'Contact Sales',
+    popular: false,
+    limit: 'Custom pricing',
+  },
+  {
+    name: 'Enterprise Plus',
+    price: 0,
+    description: 'Fortune 500 and government organizations requiring custom deployment and dedicated services',
+    gradient: 'from-red-500 to-rose-600',
+    features: [
+      'Everything in Enterprise Plan',
+      'Custom connector development',
+      'On-premise deployment (private cloud)',
+      'Professional services (implementation, training, consulting)',
+      '99.99% uptime SLA guarantee',
+      'Annual commitments with volume discounts',
+      'Custom contracts & dedicated resources',
     ],
     cta: 'Contact Sales',
     popular: false,
@@ -85,20 +102,20 @@ const plans = [
 
 const faqs = [
   {
-    question: 'Can I change plans later?',
-    answer: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we\'ll prorate any payments.',
-  },
-  {
     question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and wire transfers for Enterprise plans.',
+    answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and wire transfers for Enterprise plans. Annual contracts can be paid via invoice with net-30 terms.',
   },
   {
-    question: 'Is there a free trial?',
-    answer: 'Yes! The Pro plan comes with a 30-day free trial. No credit card required to start. You can also use the Starter plan free forever.',
+    question: 'Is there a free trial available?',
+    answer: 'Yes! All paid plans come with a comprehensive 30-day free trial with full access to all features. No credit card required to start. Experience the full power of KERNELIZE before committing.',
   },
   {
-    question: 'What happens after my trial ends?',
-    answer: 'After your trial, you can choose to upgrade to a paid plan or continue with the free Starter plan. Your data is never deleted.',
+    question: 'What happens when I exceed my plan limits?',
+    answer: 'We provide overage protection with flexible scaling. For usage beyond plan limits, you can upgrade your plan at any time or utilize our usage-based pricing model: $0.05/GB for data compression, $0.02/GB for transformations, and $0.10/GB-month for additional storage.',
+  },
+  {
+    question: 'Can I switch plans as my needs evolve?',
+    answer: 'Absolutely. You can upgrade or downgrade your plan at any time. Upgrades take effect immediately with prorated billing. Downgrades apply at the end of your current billing cycle. Our team is here to help you find the optimal plan for your needs.',
   },
 ]
 
@@ -158,7 +175,7 @@ export default function Pricing() {
         </motion.div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
@@ -195,32 +212,34 @@ export default function Pricing() {
                 <div className="relative z-10">
                   {/* Plan header */}
                   <div className="flex items-center gap-4 mb-6">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center ${plan.popular ? 'shadow-lg' : ''}`}>
-                      {plan.name === 'Enterprise' ? (
-                        <Crown className="w-7 h-7 text-white" />
-                      ) : plan.name === 'Pro' ? (
-                        <Zap className="w-7 h-7 text-white" />
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center ${plan.popular ? 'shadow-lg' : ''}`}>
+                      {plan.name === 'Enterprise Plus' ? (
+                        <Crown className="w-6 h-6 text-white" />
+                      ) : plan.name === 'Enterprise' ? (
+                        <Globe className="w-6 h-6 text-white" />
+                      ) : plan.name === 'Professional' ? (
+                        <Zap className="w-6 h-6 text-white" />
                       ) : (
-                        <Shield className="w-7 h-7 text-white" />
+                        <Shield className="w-6 h-6 text-white" />
                       )}
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-text-primary">{plan.name}</h3>
-                      <p className="text-text-muted text-sm">{plan.limit}</p>
+                      <h3 className="text-lg font-semibold text-text-primary">{plan.name}</h3>
+                      <p className="text-text-muted text-xs">{plan.limit}</p>
                     </div>
                   </div>
 
-                  <p className="text-text-secondary text-sm mb-6">{plan.description}</p>
+                  <p className="text-text-secondary text-sm mb-6 line-clamp-3">{plan.description}</p>
 
                   {/* Price */}
                   <div className="mb-6">
                     {plan.price === 0 ? (
                       <div className="flex items-baseline">
-                        <span className="text-4xl font-bold text-text-primary">Free</span>
+                        <span className="text-3xl font-bold text-text-primary">Custom</span>
                       </div>
                     ) : (
                       <div className="flex items-baseline">
-                        <span className="text-5xl font-bold text-text-primary">
+                        <span className="text-4xl font-bold text-text-primary">
                           ${billingPeriod === 'yearly' ? Math.round(plan.price * 0.8) : plan.price}
                         </span>
                         <span className="text-text-muted ml-2">/month</span>
@@ -234,20 +253,20 @@ export default function Pricing() {
                   </div>
 
                   {/* Features list */}
-                  <ul className="space-y-3 mb-8 flex-grow">
+                  <ul className="space-y-2.5 mb-8 flex-grow">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-text-secondary text-sm">{feature}</span>
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-text-secondary text-xs">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
                   {/* CTA Button */}
-                  <Link href={plan.price === 0 || plan.name === 'Pro' ? "/signup" : "#contact"}>
+                  <Link href={plan.price === 0 || plan.name === 'Enterprise Plus' ? "#contact" : "/signup"}>
                     <Button
                       variant={plan.popular ? 'primary' : 'secondary'}
-                      className={`w-full ${plan.popular ? 'py-4' : ''}`}
+                      className={`w-full ${plan.popular ? 'py-3.5' : 'py-3'}`}
                     >
                       {plan.cta}
                       {plan.popular && <ArrowRight className="w-4 h-4 ml-2" />}
