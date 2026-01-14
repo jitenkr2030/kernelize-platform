@@ -175,7 +175,7 @@ export default function Pricing() {
         </motion.div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
@@ -183,7 +183,7 @@ export default function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`relative ${plan.popular ? 'lg:-mt-4' : ''}`}
+              className={`relative flex ${plan.popular ? 'xl:-mt-6' : ''}`}
             >
               {/* Popular badge */}
               {plan.popular && (
@@ -198,38 +198,41 @@ export default function Pricing() {
               {/* Card */}
               <Card
                 variant={plan.popular ? 'default' : 'bordered'}
-                className={`h-full flex flex-col ${
+                className={`w-full flex flex-col relative overflow-hidden ${
                   plan.popular
-                    ? 'border-2 border-primary shadow-xl shadow-primary/20 relative overflow-hidden'
+                    ? 'border-2 border-primary shadow-xl shadow-primary/20'
                     : ''
-                } ${plan.popular ? 'p-8' : 'p-6'}`}
+                } p-6`}
               >
                 {/* Popular glow */}
                 {plan.popular && (
-                  <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
                 )}
+                
+                {/* Top gradient bar */}
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.gradient}`} />
 
-                <div className="relative z-10">
+                <div className="relative z-10 flex flex-col h-full">
                   {/* Plan header */}
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center ${plan.popular ? 'shadow-lg' : ''}`}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center ${plan.popular ? 'shadow-lg shadow-primary/25' : ''}`}>
                       {plan.name === 'Enterprise Plus' ? (
-                        <Crown className="w-6 h-6 text-white" />
+                        <Crown className="w-7 h-7 text-white" />
                       ) : plan.name === 'Enterprise' ? (
-                        <Globe className="w-6 h-6 text-white" />
+                        <Globe className="w-7 h-7 text-white" />
                       ) : plan.name === 'Professional' ? (
-                        <Zap className="w-6 h-6 text-white" />
+                        <Zap className="w-7 h-7 text-white" />
                       ) : (
-                        <Shield className="w-6 h-6 text-white" />
+                        <Shield className="w-7 h-7 text-white" />
                       )}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-text-primary">{plan.name}</h3>
-                      <p className="text-text-muted text-xs">{plan.limit}</p>
+                      <h3 className="text-xl font-semibold text-text-primary">{plan.name}</h3>
+                      <p className="text-text-muted text-sm">{plan.limit}</p>
                     </div>
                   </div>
 
-                  <p className="text-text-secondary text-sm mb-6 line-clamp-3">{plan.description}</p>
+                  <p className="text-text-secondary text-sm mb-6">{plan.description}</p>
 
                   {/* Price */}
                   <div className="mb-6">
@@ -253,20 +256,20 @@ export default function Pricing() {
                   </div>
 
                   {/* Features list */}
-                  <ul className="space-y-2.5 mb-8 flex-grow">
+                  <ul className="space-y-3.5 mb-8 flex-grow">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-3">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-text-secondary text-xs">{feature}</span>
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-text-secondary text-sm leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
                   {/* CTA Button */}
-                  <Link href={plan.price === 0 || plan.name === 'Enterprise Plus' ? "#contact" : "/signup"}>
+                  <Link href={plan.price === 0 || plan.name === 'Enterprise Plus' ? "#contact" : "/signup"} className="mt-auto">
                     <Button
                       variant={plan.popular ? 'primary' : 'secondary'}
-                      className={`w-full ${plan.popular ? 'py-3.5' : 'py-3'}`}
+                      className={`w-full ${plan.popular ? 'py-4' : 'py-3.5'}`}
                     >
                       {plan.cta}
                       {plan.popular && <ArrowRight className="w-4 h-4 ml-2" />}
