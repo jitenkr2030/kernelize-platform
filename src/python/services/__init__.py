@@ -1,4 +1,6 @@
 # KERNELIZE Services Module
+
+# Core compression and query services
 from .compression_engine import (
     compression_engine,
     compress_knowledge,
@@ -26,6 +28,66 @@ from .query_engine import (
     QueryType,
 )
 
+# Priority 2: Query and Reasoning Capabilities
+from .storage import (
+    PostgreSQLStorageBackend,
+    KernelStorageSchema,
+    KernelMetadata,
+    KernelVersion,
+    DocumentRecord,
+    ChunkRecord,
+    RelationshipRecord,
+    EntityType,
+    RelationshipType,
+    KernelExporter,
+    KernelImporter,
+    KernelDiff,
+    ExportFormat,
+    EncryptionMode,
+    ExportOptions,
+    ImportOptions,
+    ImportResult,
+)
+
+from .query import (
+    QueryIntent,
+    QueryOperator,
+    QueryUnderstandingPipeline,
+    QueryCache,
+    understand_query,
+    QueryRewrite,
+    QueryComponent,
+    ExtractedEntity,
+    TemporalConstraint,
+)
+
+from .reasoning import (
+    ReasoningType,
+    EvidenceSource,
+    MultiHopReasoningEngine,
+    QuestionDecomposer,
+    EvidenceCollector,
+    ReasoningChainExecutor,
+    ConfidenceAggregator,
+    ExplanationGenerator,
+    ReasoningTrace,
+    ReasoningStep,
+    Evidence,
+    SubQuestion,
+    MultiHopResult,
+    CausalRelationType,
+    CausalQueryType,
+    CausalReasoningEngine,
+    CausalGraphBuilder,
+    CausalPatternExtractor,
+    CounterfactualEngine,
+    CausalExplanation,
+    CausalNode,
+    CausalEdge,
+    CausalPath,
+    CounterfactualScenario,
+)
+
 __all__ = [
     # Compression
     "compression_engine",
@@ -51,4 +113,58 @@ __all__ = [
     "QueryResult",
     "QueryMetrics",
     "QueryType",
+    # Storage
+    "PostgreSQLStorageBackend",
+    "KernelStorageSchema",
+    "KernelMetadata",
+    "KernelVersion",
+    "DocumentRecord",
+    "ChunkRecord",
+    "RelationshipRecord",
+    "EntityType",
+    "RelationshipType",
+    "KernelExporter",
+    "KernelImporter",
+    "KernelDiff",
+    "ExportFormat",
+    "EncryptionMode",
+    "ExportOptions",
+    "ImportOptions",
+    "ImportResult",
+    # Query Understanding
+    "QueryIntent",
+    "QueryOperator",
+    "QueryUnderstandingPipeline",
+    "QueryCache",
+    "understand_query",
+    "QueryRewrite",
+    "QueryComponent",
+    "ExtractedEntity",
+    "TemporalConstraint",
+    # Reasoning
+    "ReasoningType",
+    "EvidenceSource",
+    "MultiHopReasoningEngine",
+    "QuestionDecomposer",
+    "EvidenceCollector",
+    "ReasoningChainExecutor",
+    "ConfidenceAggregator",
+    "ExplanationGenerator",
+    "ReasoningTrace",
+    "ReasoningStep",
+    "Evidence",
+    "SubQuestion",
+    "MultiHopResult",
+    # Causal Reasoning
+    "CausalRelationType",
+    "CausalQueryType",
+    "CausalReasoningEngine",
+    "CausalGraphBuilder",
+    "CausalPatternExtractor",
+    "CounterfactualEngine",
+    "CausalExplanation",
+    "CausalNode",
+    "CausalEdge",
+    "CausalPath",
+    "CounterfactualScenario",
 ]
