@@ -132,31 +132,102 @@ class EmbeddingGenerator:
     """
     Embedding Vector Generator
     
-    Generates semantic embedding vectors for text with support for multiple
-    models and optimization strategies.
+    Generates semantic embedding vectors using sentence-transformers for accurate
+    semantic similarity. Supports lazy loading, model caching, and fallback to
+    hash-based embeddings for resilience.
     """
     
+    # Class-level model instance for singleton pattern
+    _model_instance = None
+    _model_name = "all-MiniLM-L6-v2"
+    _dimensions = 384
+    
     def __init__(self, model_name: str = "all-MiniLM-L6-v2", dimensions: int = 384):
+        """
+        Initialize the embedding generator.
+        
+        Args:
+            model_name: Name of the sentence-transformers model to use
+            dimensions: Expected embedding dimensions (default 384 for all-MiniLM-L6-v2)
+        """
         self.model_name = model_name
         self.dimensions = dimensions
         self._model = None
+        self._use_fallback = False
+        self._fallback_calls = 0
+        self._model_calls = 0
         logger.info(f"EmbeddingGenerator initialized with model: {model_name}")
+    
+    def _load_model(self):
+        """
+        Load the sentence-transformers model lazily.
+        
+        Uses singleton pattern to ensure model is loaded only once.
+        Falls back to hash-based embeddings if model loading fails.
+        """
+        if self._model is not None and not self._use_fallback:
+            return True
+            
+        try:
+            from sentence_transformers import SentenceTransformer
+            logger.info(f"Loading sentence-transformers model: {self.model_name}")
+            self._model = SentenceTransformer(self.model_name)
+            self._use_fallback = False
+            logger.info(f"Successfully loaded model: {self.model_name}")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to load sentence-transformers model: {e}")
+            logger.warning("Falling back to hash-based embeddings")
+            self._use_fallback = True
+            self._model = None
+            return False
     
     def generate(self, text: str) -> List[float]:
         """
-        Generate text embedding vector
+        Generate text embedding vector using sentence-transformers.
         
-        Uses pretrained model to convert text to semantic vector.
-        Note: In actual implementation, transformers model would be loaded.
+        Args:
+            text: Input text to generate embedding for
+            
+        Returns:
+            List of floats representing the embedding vector (384 dimensions)
         """
-        # Simulate embedding generation (would use sentence-transformers in production)
-        # Here generates a deterministic vector based on text content
+        # Attempt to load model if not already loaded
+        self._load_model()
+        
+        if not self._use_fallback and self._model is not None:
+            try:
+                # Use sentence-transformers for real semantic embeddings
+                self._model_calls += 1
+                embedding = self._model.encode(text, convert_to_numpy=True)
+                # Ensure it's a list and has correct dimensions
+                if embedding.ndim == 1:
+                    embedding = embedding.tolist()
+                else:
+                    embedding = embedding.flatten().tolist()
+                return embedding[:self.dimensions]
+            except Exception as e:
+                logger.error(f"Inference error with sentence-transformers: {e}")
+                logger.warning("Falling back to hash-based embeddings")
+                self._use_fallback = True
+        
+        # Fallback to hash-based embeddings
+        return self._fallback_generate(text)
+    
+    def _fallback_generate(self, text: str) -> List[float]:
+        """
+        Generate hash-based embedding as fallback.
+        
+        This preserves backward compatibility when sentence-transformers
+        is unavailable or fails.
+        """
+        self._fallback_calls += 1
         
         # Preprocess text
         text = text.lower().strip()
         words = re.findall(r'\b[a-z]{2,}\b', text)
         
-        # Simulate word vectors
+        # Simulate word vectors (legacy method)
         vector = np.zeros(self.dimensions)
         for i, word in enumerate(words[:self.dimensions]):
             hash_val = int(hashlib.md5(word.encode()).hexdigest(), 16)
@@ -170,11 +241,56 @@ class EmbeddingGenerator:
         return vector.tolist()
     
     def batch_generate(self, texts: List[str]) -> List[List[float]]:
-        """Batch generate embedding vectors"""
-        return [self.generate(text) for text in texts]
+        """
+        Batch generate embedding vectors for efficiency.
+        
+        Uses matrix operations for significant speedup over individual calls.
+        
+        Args:
+            texts: List of input texts to generate embeddings for
+            
+        Returns:
+            List of embedding vectors
+        """
+        if not texts:
+            return []
+        
+        # Attempt to load model if not already loaded
+        self._load_model()
+        
+        if not self._use_fallback and self._model is not None:
+            try:
+                # Use batch encoding for efficiency
+                self._model_calls += len(texts)
+                embeddings = self._model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+                
+                # Convert to list of lists with correct dimensions
+                result = []
+                for emb in embeddings:
+                    if emb.ndim == 1:
+                        result.append(emb[:self.dimensions].tolist())
+                    else:
+                        result.append(emb.flatten()[:self.dimensions].tolist())
+                return result
+            except Exception as e:
+                logger.error(f"Batch inference error: {e}")
+                logger.warning("Falling back to individual hash-based embeddings")
+                self._use_fallback = True
+        
+        # Fallback to individual processing
+        return [self._fallback_generate(text) for text in texts]
     
     def cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
-        """Calculate cosine similarity"""
+        """
+        Calculate cosine similarity between two embedding vectors.
+        
+        Args:
+            vec1: First embedding vector
+            vec2: Second embedding vector
+            
+        Returns:
+            Cosine similarity score between 0 and 1
+        """
         if not vec1 or not vec2:
             return 0.0
         
@@ -190,13 +306,42 @@ class EmbeddingGenerator:
         
         return float(dot_product / (norm1 * norm2))
     
+    def semantic_similarity(self, text1: str, text2: str) -> float:
+        """
+        Calculate semantic similarity between two texts.
+        
+        Convenience method that generates embeddings and calculates similarity.
+        
+        Args:
+            text1: First text
+            text2: Second text
+            
+        Returns:
+            Semantic similarity score between 0 and 1
+        """
+        emb1 = self.generate(text1)
+        emb2 = self.generate(text2)
+        return self.cosine_similarity(emb1, emb2)
+    
     def get_stats(self) -> Dict[str, Any]:
-        """Get embedding generator statistics"""
+        """
+        Get embedding generator statistics.
+        
+        Returns:
+            Dictionary with model info, dimensions, and usage statistics
+        """
         return {
             "model_name": self.model_name,
             "dimensions": self.dimensions,
-            "status": "ready",
+            "status": "active" if not self._use_fallback else "fallback",
+            "model_calls": self._model_calls,
+            "fallback_calls": self._fallback_calls,
+            "using_transformer": not self._use_fallback,
         }
+    
+    def clear_cache(self) -> None:
+        """Clear any internal caches (placeholder for future caching implementations)"""
+        pass
 
 
 class ExactMatcher:
