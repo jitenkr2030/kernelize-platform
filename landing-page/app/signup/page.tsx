@@ -66,7 +66,7 @@ export default function SignupPage() {
           <span className="text-xl font-bold gradient-text ml-2">KERNELIZE</span>
         </div>
 
-        <Card className="w-80 p-5">
+        <Card className="w-96 p-6">
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-xs font-semibold text-white mb-1.5">Full Name</label>
