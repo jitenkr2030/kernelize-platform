@@ -26,18 +26,17 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', hover = false, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-surface',
-      glass: 'glass',
-      bordered: 'bg-surface border border-slate-700',
+      default: 'glass rounded-2xl',
+      glass: 'glass rounded-2xl',
+      bordered: 'glass border border-white/10 rounded-2xl',
     }
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-xl p-6',
           variants[variant],
-          hover && 'card-hover cursor-pointer',
+          hover && 'transition-all duration-500 hover:transform hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/10',
           className
         )}
         {...props}

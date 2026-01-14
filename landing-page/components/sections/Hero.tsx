@@ -15,147 +15,322 @@
 
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, Zap, Shield, Cpu, Database, Cloud } from 'lucide-react'
+import { ArrowRight, Zap, Shield, Cpu, Database, Cloud, Terminal, Lock, Globe, Sparkles, Layers, Box, Cpu as CpuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 
-export default function Hero() {
+// Floating particle component
+function FloatingParticle({ delay, duration, size, startX, startY }: { delay: number; duration: number; size: number; startX: number; startY: number }) {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse delay-1000" />
+    <motion.div
+      className="absolute rounded-full bg-primary/20"
+      style={{
+        width: size,
+        height: size,
+        left: `${startX}%`,
+        top: `${startY}%`,
+      }}
+      animate={{
+        y: [0, -100, 0],
+        x: [0, 30, 0],
+        opacity: [0, 0.6, 0],
+      }}
+      transition={{
+        duration,
+        delay,
+        repeat: Infinity,
+        ease: 'easeInOut',
+      }}
+    />
+  )
+}
+
+export default function Hero() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100,
+      })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+      },
+    },
+  }
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
+      {/* Animated background orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="orb orb-primary w-[600px] h-[600px] opacity-40"
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          style={{
+            left: '10%',
+            top: '20%',
+          }}
+        />
+        <motion.div
+          className="orb orb-secondary w-[500px] h-[500px] opacity-30"
+          animate={{
+            x: [0, -80, 0],
+            y: [0, 80, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          style={{
+            right: '10%',
+            bottom: '20%',
+          }}
+        />
+        <motion.div
+          className="orb orb-accent w-[400px] h-[400px] opacity-25"
+          animate={{
+            x: [0, 50, 0],
+            y: [0, -100, 0],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          style={{
+            left: '50%',
+            top: '40%',
+          }}
+        />
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        
+        {/* Floating particles */}
+        {[...Array(6)].map((_, i) => (
+          <FloatingParticle
+            key={i}
+            delay={i * 0.5}
+            duration={8 + i * 2}
+            size={4 + Math.random() * 8}
+            startX={20 + Math.random() * 60}
+            startY={30 + Math.random() * 40}
+          />
+        ))}
+      </div>
 
       <div className="container-custom relative z-10">
-        <div className="text-center max-w-5xl mx-auto">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-center max-w-5xl mx-auto"
+        >
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8"
-          >
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-sm text-text-secondary">Now with AI-Powered Compression 2.0</span>
+          <motion.div variants={itemVariants}>
+            <Link href="/changelog" className="inline-flex items-center gap-3 px-6 py-3 glass rounded-full mb-8 hover:border-primary/30 transition-colors cursor-pointer group">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-accent" />
+              </span>
+              <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
+                Introducing KERNELIZE 2.0 with AI-Powered Compression
+              </span>
+              <Sparkles className="w-4 h-4 text-accent" />
+            </Link>
           </motion.div>
 
           {/* Main Heading */}
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6"
+            variants={itemVariants}
+            className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-tight"
           >
-            <span className="text-text-primary">Enterprise AI & Data</span>
+            <span className="text-text-primary">The Future of</span>
             <br />
-            <span className="gradient-text">Management Platform</span>
+            <span className="gradient-text">Enterprise AI Infrastructure</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto mb-10"
+            variants={itemVariants}
+            className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto mb-10 leading-relaxed"
           >
-            Comprehensive enterprise-grade platform implementing advanced AI compression, 
-            analytics, data management, and DevOps operations. Deploy production-ready in minutes.
+            Build, deploy, and scale next-generation AI applications with our comprehensive 
+            platform featuring advanced compression, real-time analytics, and enterprise-grade security.
           </motion.p>
 
           {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            variants={itemVariants}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
           >
             <Link href="/signup">
-              <Button size="lg" className="group w-full sm:w-auto">
+              <Button size="lg" className="group w-full sm:w-auto text-lg px-8">
+                <Zap className="w-5 h-5 mr-2" />
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="#features">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                Explore Features
+            <Link href="/docs">
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto text-lg px-8">
+                <Terminal className="w-5 h-5 mr-2" />
+                View Documentation
               </Button>
             </Link>
           </motion.div>
 
-          {/* Stats */}
+          {/* Bento Grid Stats */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
+            variants={itemVariants}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-16"
           >
             {[
-              { icon: Database, value: '50PB+', label: 'Data Processed' },
-              { icon: Cloud, value: '99.9%', label: 'Uptime SLA' },
-              { icon: Cpu, value: '10K+', label: 'API Calls/Sec' },
-              { icon: Shield, value: '500+', label: 'Enterprise Users' },
+              { icon: Database, value: '50PB+', label: 'Data Processed', color: 'from-blue-500 to-cyan-500' },
+              { icon: Cloud, value: '99.99%', label: 'Uptime SLA', color: 'from-green-500 to-emerald-500' },
+              { icon: CpuIcon, value: '10K+', label: 'API Calls/Sec', color: 'from-purple-500 to-pink-500' },
+              { icon: Globe, value: '150+', label: 'Countries', color: 'from-orange-500 to-amber-500' },
             ].map((stat, index) => (
-              <div
+              <motion.div
                 key={stat.label}
-                className="glass rounded-xl p-4 card-hover"
+                className="glass rounded-2xl p-6 text-center hover-border-gradient group cursor-default"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
               >
-                <stat.icon className="w-8 h-8 text-primary mx-auto mb-2" />
-                <div className="text-2xl font-bold text-text-primary">{stat.value}</div>
+                <div className={`w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity`}>
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-3xl font-bold gradient-text mb-1">{stat.value}</div>
                 <div className="text-sm text-text-secondary">{stat.label}</div>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
 
-          {/* Visual Element */}
+          {/* Visual Element - Terminal */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="mt-16 relative"
+            variants={itemVariants}
+            className="relative max-w-5xl mx-auto"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
-            <div className="glass rounded-2xl border border-slate-700 overflow-hidden">
-              <div className="bg-surface/50 px-4 py-3 flex items-center gap-2 border-b border-slate-700">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span className="text-text-secondary text-sm ml-2">kernelize-platform</span>
+            {/* Terminal glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent rounded-2xl blur-2xl" />
+            
+            <div className="glass rounded-2xl border border-white/10 overflow-hidden relative">
+              {/* Terminal header */}
+              <div className="bg-surfaceLight/80 px-4 py-3 flex items-center gap-3 border-b border-white/5">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                </div>
+                <div className="flex-1 text-center">
+                  <span className="text-text-muted text-sm font-mono">kernelize-terminal — v2.0</span>
+                </div>
+                <div className="flex items-center gap-2 text-text-muted text-xs">
+                  <Lock className="w-3 h-3" />
+                  <span>SSH Connected</span>
+                </div>
               </div>
+              
+              {/* Terminal content */}
               <div className="p-6 text-left font-mono text-sm overflow-x-auto">
-                <div className="text-text-secondary">
-                  <span className="text-primary">$</span> kernelize init my-project
+                <div className="text-text-secondary mb-4">
+                  <span className="text-primary">$</span> kernelize init my-ai-project --template=enterprise
                 </div>
-                <div className="text-green-400 mt-2">
-                  ✓ Project initialized successfully
+                <div className="text-accent-light mt-2 mb-4">
+                  <span className="text-green-400">✓</span> Project initialized successfully
                 </div>
-                <div className="text-text-secondary mt-2">
-                  <span className="text-primary">$</span> kernelize deploy --production
+                <div className="text-text-secondary mb-2">
+                  <span className="text-primary">$</span> kernelize deploy --production --scale=auto
                 </div>
-                <div className="text-green-400 mt-2">
-                  ✓ Infrastructure deployed (Terraform)<br />
-                  ✓ Kubernetes cluster configured<br />
-                  ✓ CI/CD pipeline activated<br />
-                  ✓ Monitoring stack deployed<br />
-                  ✓ Production URL: https://app.kernelize.platform
+                <div className="text-green-400 mt-2 space-y-1">
+                  <div>✓ Infrastructure provisioned (Terraform v1.6)</div>
+                  <div>✓ Kubernetes cluster configured (3 nodes)</div>
+                  <div>✓ AI model endpoints deployed (TensorFlow 2.14)</div>
+                  <div>✓ CI/CD pipeline activated (GitHub Actions)</div>
+                  <div>✓ Monitoring stack deployed (Prometheus + Grafana)</div>
+                  <div>✓ CDN configured (50+ edge locations)</div>
+                  <div className="mt-2 text-accent">● Production URL: https://app.kernelize.platform</div>
                 </div>
-                <div className="text-text-secondary mt-2">
-                  <span className="text-primary">$</span> kernelize status
+                <div className="text-text-secondary mt-4">
+                  <span className="text-primary">$</span> kernelize status --verbose
                 </div>
-                <div className="text-green-400 mt-2">
-                  ✓ All services healthy<br />
-                  ✓ 99.99% uptime achieved<br />
-                  ✓ Data processed: 1.2TB today
+                <div className="text-text-muted mt-2">
+                  System Status: <span className="text-green-400">Healthy</span> | 
+                  Latency: <span className="text-accent">23ms</span> | 
+                  Requests/sec: <span className="text-purple-400">12,847</span>
                 </div>
               </div>
             </div>
+            
+            {/* Floating badges */}
+            <motion.div
+              className="absolute -top-4 -right-4 glass px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            >
+              <Box className="w-4 h-4 text-accent" />
+              <span className="text-text-primary">Serverless Ready</span>
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-4 -left-4 glass px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 5, repeat: Infinity }}
+            >
+              <Layers className="w-4 h-4 text-purple-400" />
+              <span className="text-text-primary">SOC2 Compliant</span>
+            </motion.div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+      {/* Scroll indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <span className="text-text-muted text-xs">Scroll to explore</span>
+        <div className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-1">
+          <motion.div
+            className="w-1.5 h-1.5 rounded-full bg-primary"
+            animate={{ y: [0, 16, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        </div>
+      </motion.div>
     </section>
   )
 }
