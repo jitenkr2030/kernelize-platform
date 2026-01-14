@@ -42,30 +42,30 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-sm mx-4"
+        className="w-full max-w-xs px-4"
       >
         {/* Logo */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary via-purple-500 to-accent rounded-xl flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple-500 to-accent rounded-xl flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
             </div>
           </Link>
-          <span className="text-2xl font-bold gradient-text ml-2">KERNELIZE</span>
+          <span className="text-xl font-bold gradient-text ml-2">KERNELIZE</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-white mb-2">Email</label>
+            <label className="block text-xs font-semibold text-white mb-1.5">Email</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-4 w-4 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-3.5 w-3.5 text-gray-400" />
               </div>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white rounded-full text-gray-900 placeholder-gray-400 text-sm focus:outline-none"
+                className="w-full pl-9 pr-3 py-2.5 bg-white rounded-full text-gray-900 placeholder-gray-400 text-sm focus:outline-none"
                 placeholder="name@company.com"
                 required
               />
@@ -73,63 +73,56 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-white mb-2">Password</label>
+            <label className="block text-xs font-semibold text-white mb-1.5">Password</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-4 w-4 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-3.5 w-3.5 text-gray-400" />
               </div>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-11 pr-11 py-3 bg-white rounded-full text-gray-900 placeholder-gray-400 text-sm focus:outline-none"
+                className="w-full pl-9 pr-9 py-2.5 bg-white rounded-full text-gray-900 placeholder-gray-400 text-sm focus:outline-none"
                 placeholder="Enter password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                {showPassword ? <EyeOff className="h-3.5 w-3.5 text-gray-400" /> : <Eye className="h-3.5 w-3.5 text-gray-400" />}
               </button>
             </div>
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border-gray-300"
+                className="w-3.5 h-3.5 rounded border-gray-300"
               />
-              <span className="text-sm text-gray-300">Remember me</span>
+              <span className="text-xs text-gray-300">Remember</span>
             </label>
-            <Link href="/forgot-password" className="text-sm text-primary hover:text-accent">
-              Forgot password?
+            <Link href="/forgot-password" className="text-xs text-primary hover:text-accent">
+              Forgot?
             </Link>
           </div>
 
           <Button
             type="submit"
-            className="w-full py-3 rounded-full"
+            className="w-full py-2 rounded-full text-sm"
             disabled={isLoading}
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-gray-400 mt-6">
+        <p className="text-center text-xs text-gray-400 mt-5">
           Don't have an account?{' '}
           <Link href="/signup" className="text-primary hover:text-accent font-medium">
             Sign up
           </Link>
-        </p>
-
-        <p className="text-center text-xs text-gray-500 mt-6">
-          By signing in, you agree to our{' '}
-          <Link href="/terms" className="text-gray-400 hover:text-white">Terms</Link>
-          {' '}and{' '}
-          <Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link>
         </p>
       </motion.div>
     </main>
